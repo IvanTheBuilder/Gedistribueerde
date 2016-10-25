@@ -23,10 +23,8 @@ public class NameServer {
     public static NameServer fromDisk() {
         try {
             JAXBContext context = JAXBContext.newInstance(NameServer.class);
-
             Unmarshaller unmarshaller = context.createUnmarshaller();
             return (NameServer) unmarshaller.unmarshal(new File("nameserver.xml"));
-
         } catch (JAXBException e) {
             e.printStackTrace();
             System.out.println("File probably not found...");
@@ -35,7 +33,7 @@ public class NameServer {
     }
 
     public static final int hashName(String name) {
-        return Math.abs(name.hashCode() >> 16);
+        return Math.abs(name.hashCode() % 32768);
     }
 
     /**
