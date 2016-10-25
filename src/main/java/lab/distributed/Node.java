@@ -14,7 +14,7 @@ public class Node {
 
     private String name;
     private String location;
-    private String nameServerName = "";
+    private String nameServerName = "192.168.1.1";
 
     public Node(String name){
         this.name=name;
@@ -56,11 +56,12 @@ public class Node {
 
     }
 
-    public void getFileLocation(String fileName)
+    public String getFileLocation(String fileName)
     {
         try {
             NameServerInterface nameServerInterface = (NameServerInterface) Naming.lookup(nameServerName);
             String fileLocation = nameServerInterface.getOwner(fileName);
+            return fileLocation;
         } catch (NotBoundException e) {
             e.printStackTrace();
         } catch (MalformedURLException e) {
@@ -68,6 +69,7 @@ public class Node {
         } catch (RemoteException e) {
             e.printStackTrace();
         }
+        return null;
     }
 
     public void exit()
