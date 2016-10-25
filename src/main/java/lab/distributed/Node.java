@@ -23,9 +23,40 @@ public class Node {
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
+        try {
+            NameServerInterface nameServerInterface = (NameServerInterface) Naming.lookup(nameServerName);
+            if(!nameServerInterface.addNode(name,location))
+            {
+                System.out.println("deze naam bestaat al");
+                System.exit(1);
+            }
+        } catch (NotBoundException e) {
+            e.printStackTrace();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+
     }
 
-    public void getLocation(String fileName)
+    public void deleteNode(String name)
+    {
+        try {
+            NameServerInterface nameServerInterface = (NameServerInterface) Naming.lookup(nameServerName);
+            if(!nameServerInterface.removeNode(name))
+                System.out.println("deze node bestaat niet");
+        } catch (NotBoundException e) {
+            e.printStackTrace();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public void getFileLocation(String fileName)
     {
         try {
             NameServerInterface nameServerInterface = (NameServerInterface) Naming.lookup(nameServerName);
@@ -37,6 +68,23 @@ public class Node {
         } catch (RemoteException e) {
             e.printStackTrace();
         }
+    }
+
+    public void exit()
+    {
+        try {
+            NameServerInterface nameServerInterface = (NameServerInterface) Naming.lookup(nameServerName);
+            deleteNode(name);
+        } catch (NotBoundException e) {
+            e.printStackTrace();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }finally {
+            System.exit(0);
+        }
+
     }
 
 }
