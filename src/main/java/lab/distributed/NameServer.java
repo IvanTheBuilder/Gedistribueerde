@@ -17,9 +17,26 @@ import java.util.Map;
 @XmlRootElement(name = "nameserver")
 public class NameServer {
 
-
     @XmlElement(name = "nodemap")
     Map<Integer, String> nodeMap = new HashMap<Integer, String>();
+
+    public static NameServer fromDisk() {
+        try {
+            JAXBContext context = JAXBContext.newInstance(NameServer.class);
+
+            Unmarshaller unmarshaller = context.createUnmarshaller();
+            return (NameServer) unmarshaller.unmarshal(new File("nameserver.xml"));
+
+        } catch (JAXBException e) {
+            e.printStackTrace();
+            System.out.println("File probably not found...");
+            return null;
+        }
+    }
+
+    public static final int hashName(String name) {
+        return Math.abs(name.hashCode() >> 16);
+    }
 
     /**
      * Voeg een node toe aan het systeem.
@@ -69,7 +86,6 @@ public class NameServer {
         else return null;
     }
 
-
     public void saveToDisk() {
         try {
             JAXBContext context = JAXBContext.newInstance(NameServer.class);
@@ -82,24 +98,6 @@ public class NameServer {
         } catch (JAXBException e) {
             e.printStackTrace();
         }
-    }
-
-    public static NameServer fromDisk() {
-        try {
-            JAXBContext context = JAXBContext.newInstance(NameServer.class);
-
-            Unmarshaller unmarshaller = context.createUnmarshaller();
-            return (NameServer) unmarshaller.unmarshal(new File("nameserver.xml"));
-
-        } catch (JAXBException e) {
-            e.printStackTrace();
-            System.out.println("File probably not found...");
-            return null;
-        }
-    }
-
-    public static final int hashName(String name) {
-        return Math.abs(name.hashCode() >> 16);
     }
 
 
