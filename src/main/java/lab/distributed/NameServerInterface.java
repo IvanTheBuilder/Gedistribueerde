@@ -10,4 +10,8 @@ public interface NameServerInterface extends Remote {
 
     String getOwner(String filename) throws RemoteException;
 
+    boolean addNode(String nodeName, String inetAddress) throws RemoteException;
+
+    boolean removeNode(String nodeName) throws RemoteException;
+
 }
