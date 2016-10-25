@@ -14,8 +14,12 @@ public class Node {
 
     private String name;
     private String location;
-    private String nameServerName = "192.168.1.1";
+    private String nameServerName = "//192.168.1.1/NameServerInterface";
 
+    /**
+     * De constructor gaat een nieuwe node aanmaken in de nameserver met de gekozen naam en het ip adres van de machine waarop hij gestart wordt.
+     * @param name de naam van de node
+     */
     public Node(String name){
         this.name=name;
         try {
@@ -40,6 +44,10 @@ public class Node {
 
     }
 
+    /**
+     * Deze node kan eender welke node verwijderen uit de nameServer
+     * @param name de naam van te verwijderen node
+     */
     public void deleteNode(String name)
     {
         try {
@@ -56,6 +64,11 @@ public class Node {
 
     }
 
+    /**
+     * Deze methode zal de locatie van een bestand opzoeken in de nameserver
+     * @param fileName de naam van het te zoeken bestand
+     * @return het ip adres van de locatie van het bestand
+     */
     public String getFileLocation(String fileName)
     {
         try {
@@ -72,6 +85,9 @@ public class Node {
         return null;
     }
 
+    /**
+     *  deze node wordt verwijderd uit de nameserver en sluit af
+     */
     public void exit()
     {
         try {
