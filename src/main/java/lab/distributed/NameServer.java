@@ -55,7 +55,7 @@ public class NameServer implements NameServerInterface {
      * Verwijder een node uit het systeem
      *
      * @param nodeName String, de naam van de node
-     * @return Geeft true terug als node is gevonden en verwijdert. Geeft false indien node niet gevonden.
+     * @return Geeft true terug als node is gevonden en verwijderd. Geeft false indien node niet gevonden.
      */
     public boolean removeNode(String nodeName) {
         return nodeMap.remove(hashName(nodeName)) != null;
