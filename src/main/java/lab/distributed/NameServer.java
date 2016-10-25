@@ -15,7 +15,7 @@ import java.util.Map;
  * Created by Ivan on 12/10/2016.
  */
 @XmlRootElement(name = "nameserver")
-public class NameServer {
+public class NameServer implements NameServerInterface {
 
     @XmlElement(name = "nodemap")
     Map<Integer, String> nodeMap = new HashMap<Integer, String>();
