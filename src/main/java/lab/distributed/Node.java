@@ -1,6 +1,5 @@
 package lab.distributed;
 
-import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -9,7 +8,6 @@ import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.Arrays;
-import java.util.InputMismatchException;
 
 
 public class Node {
@@ -224,34 +222,33 @@ public class Node {
             while(true) {
                 Socket clientSocket = serverSocket.accept();
                 DataInputStream dataInputStream = new DataInputStream(clientSocket.getInputStream());
-                String buf = new String();
                 try {
                     while (true) {
-                        buf += dataInputStream.readUTF() + " ";
+                        String[] splitted = dataInputStream.readUTF().split("\\s");
+                        switch (splitted[0]) {
+                            case "size":
+                                size = Integer.parseInt(splitted[1]);
+                                break;
+                            case "prev":
+                                previousNode = Integer.parseInt(splitted[1]);
+                                break;
+                            case "next":
+                                nextNode = Integer.parseInt(splitted[1]);
+                                break;
+                            default:
+                                break;
+                        }
                     }
                 } catch (IOException e) {
                     //wanneer exception gevangen wordt, wil dit zeggen dat client klaar is
                     //socket gaat gewoon voort luisteren naar andere inkomende verbindingen.
                 }
-                String[] splitted = buf.split("\\s");
 
-                for (int i = 0; i < splitted.length / 2; i++) {
-                    switch (splitted[i]) {
-                        case "size":
-                            size = Integer.parseInt(splitted[i + 1]);
-                            break;
-                        case "prev":
-                            previousNode = Integer.parseInt(splitted[i + 1]);
-                            break;
-                        case "next":
-                            nextNode = Integer.parseInt(splitted[i + 1]);
-                            break;
-                    }
-                }
                 if (size != null && nextNode != null && previousNode != null) {
                     if (size < 1) {
                         this.previousNode = myHash;
                         this.nextNode = myHash;
+                        size = 1;
                     } else {
                         this.nextNode = nextNode;
                         this.previousNode = previousNode;
