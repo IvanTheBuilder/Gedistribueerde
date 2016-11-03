@@ -143,41 +143,44 @@ public class Node {
     public void startMulticastListener() {
         new Thread(new Runnable() {
             public void run() {
+                int hash = 0;
                 try {
                     MulticastSocket multicastSocket = new MulticastSocket(MULTICAST_PORT);
                     multicastSocket.joinGroup(InetAddress.getByName(GROUP));
                     byte[] buf = new byte[256];
                     DatagramPacket datagramPacket = new DatagramPacket(buf, buf.length);
-                    while(true) {
+                    while (true) {
                         multicastSocket.receive(datagramPacket);
                         byte[] byteAddress = Arrays.copyOfRange(buf, 0, 3);
                         String address = InetAddress.getByAddress(byteAddress).getHostAddress();
                         String name = new String(Arrays.copyOfRange(byteAddress, 4, 255)).trim();
-                        int hash = hashName(name);
+                        hash = hashName(name);
 
                         /*
                         Indien nieuwe node tussen vorige node en deze node ligt, update vorige node en vertel tegen
                         nieuwe node zijn buren.
                          */
-                        if(previousNode < hash && hash < myHash) {
+                        if (previousNode < hash && hash < myHash) {
                             previousNode = hash;
                             Socket socket = new Socket(address, COMMUNICATIONS_PORT);
                             DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
-                            dataOutputStream.writeUTF("prev "+myHash);
-                            dataOutputStream.writeUTF("next "+nextNode);
+                            dataOutputStream.writeUTF("prev " + myHash);
+                            dataOutputStream.writeUTF("next " + nextNode);
 
                             dataOutputStream.close();
                         }
                         /**
                          * Anders, als nieuwe node tussen mij en volgende node ligt, pas aan.
                          */
-                        else if(myHash < hash && hash < nextNode)
+                        else if (myHash < hash && hash < nextNode)
                             nextNode = hash;
 
                     }
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
                 } catch (IOException e) {
                     e.printStackTrace();
-                    //TODO: failure methode aanroepen
+                    failure(hash);
                 }
             }
         }).start();
@@ -199,7 +202,6 @@ public class Node {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
-            //TODO: failure methode aanroepen
         }
 
     }
@@ -258,7 +260,7 @@ public class Node {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
-            //TODO: failure methode aanroepen
+            failure(target);
         }
     }
 
