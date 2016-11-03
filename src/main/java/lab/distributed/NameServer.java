@@ -78,6 +78,16 @@ public class NameServer implements NameServerInterface {
         return nodeMap.remove(hashName(nodeName)) != null;
     }
 
+    public int getPreviousNode(int hash) {
+        Integer previous = nodeMap.lowerKey(hash);
+        return previous != null ? previous.intValue() : nodeMap.lastKey();
+    }
+
+    public int getNextNode(int hash) {
+        Integer previous = nodeMap.higherKey(hash);
+        return previous != null ? previous.intValue() : nodeMap.firstKey();
+    }
+
     /**
      * Vraagt de naam van de node op die "ownership" heeft over een bestand.
      *

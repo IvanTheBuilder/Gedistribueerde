@@ -162,7 +162,9 @@ public class Node {
                             previousNode = hash;
                             Socket socket = new Socket(address, COMMUNICATIONS_PORT);
                             DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
-                            dataOutputStream.writeUTF("prevnext "+myHash+" "+nextNode);
+                            dataOutputStream.writeUTF("prev "+myHash);
+                            dataOutputStream.writeUTF("next "+nextNode);
+
                             dataOutputStream.close();
                         }
                         /**
