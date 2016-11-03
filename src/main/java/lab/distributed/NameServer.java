@@ -133,7 +133,8 @@ public class NameServer implements NameServerInterface {
                         addNode(name, address);
                         socket = new Socket(address, COMMUNICATIONS_PORT);
                         DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
-                        dataOutputStream.writeUTF(""+nodeMap.size());
+                        dataOutputStream.writeUTF("size "+nodeMap.size());
+                        dataOutputStream.close();
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
