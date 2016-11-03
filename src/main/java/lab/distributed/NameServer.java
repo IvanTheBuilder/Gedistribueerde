@@ -59,6 +59,7 @@ public class NameServer implements NameServerInterface {
     public boolean addNode(String nodeName, String inetAddress) {
         if (!nodeMap.containsKey(hashName(nodeName))) {
             nodeMap.put(hashName(nodeName), inetAddress);
+            saveToDisk();
             return true;
         } else
             return false;
