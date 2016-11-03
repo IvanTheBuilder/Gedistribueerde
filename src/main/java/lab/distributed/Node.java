@@ -1,5 +1,7 @@
 package lab.distributed;
 
+import java.io.DataInput;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.*;
@@ -7,6 +9,7 @@ import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.Arrays;
+import java.util.InputMismatchException;
 
 
 public class Node {
@@ -52,6 +55,7 @@ public class Node {
                 System.exit(1);
             }
             sendBootstrapBroadcast();
+            startTCPServerSocket();
         } catch (NotBoundException e) {
             e.printStackTrace();
         } catch (MalformedURLException e) {
@@ -199,6 +203,64 @@ public class Node {
             e.printStackTrace();
         }
 
+    }
+
+
+    /**
+     * Start de TCPServerSocket, er wordt continu geluisterd voor wanneer
+     * een node offline gaat.
+     *
+     * codewoorden
+     * size param1 = size
+     * prev param1 = previous id param1
+     * next param1 = next id param1
+     */
+    public void startTCPServerSocket(){
+        try {
+            Integer size = null;
+            Integer nextNode = null;
+            Integer previousNode = null;
+            ServerSocket serverSocket = new ServerSocket(COMMUNICATIONS_PORT);
+            while(true) {
+                Socket clientSocket = serverSocket.accept();
+                DataInputStream dataInputStream = new DataInputStream(clientSocket.getInputStream());
+                String buf = new String();
+                try {
+                    while (true) {
+                        buf += dataInputStream.readUTF() + " ";
+                    }
+                } catch (IOException e) {
+                    //wanneer exception gevangen wordt, wil dit zeggen dat client klaar is
+                    //socket gaat gewoon voort luisteren naar andere inkomende verbindingen.
+                }
+                String[] splitted = buf.split("\\s");
+
+                for (int i = 0; i < splitted.length / 2; i++) {
+                    switch (splitted[i]) {
+                        case "size":
+                            size = Integer.parseInt(splitted[i + 1]);
+                            break;
+                        case "prev":
+                            previousNode = Integer.parseInt(splitted[i + 1]);
+                            break;
+                        case "next":
+                            nextNode = Integer.parseInt(splitted[i + 1]);
+                            break;
+                    }
+                }
+                if (size != null && nextNode != null && previousNode != null) {
+                    if (size < 1) {
+                        this.previousNode = myHash;
+                        this.nextNode = myHash;
+                    } else {
+                        this.nextNode = nextNode;
+                        this.previousNode = previousNode;
+                    }
+                }
+            }
+    } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public static final int hashName(String name) {
