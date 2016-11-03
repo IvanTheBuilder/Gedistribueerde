@@ -41,7 +41,7 @@ public class Node {
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
-        try {
+        try {//dit moet er nog uit want dit is dubbel werk
             NameServerInterface nameServerInterface = (NameServerInterface) Naming.lookup(nameServerName);
             if(!nameServerInterface.addNode(name,location))
             {

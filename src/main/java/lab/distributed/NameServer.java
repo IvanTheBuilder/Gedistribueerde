@@ -6,11 +6,13 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.net.Socket;
 import java.util.Arrays;
 import java.util.TreeMap;
 
@@ -28,6 +30,7 @@ public class NameServer implements NameServerInterface {
      */
     public static final String GROUP = "225.1.2.3";
     public static final int MULTICAST_PORT = 12345;
+    public static final int COMMUNICATIONS_PORT =  4000;
 
     public NameServer() {
         startMulticastListener();
@@ -120,6 +123,7 @@ public class NameServer implements NameServerInterface {
                     multicastSocket.joinGroup(InetAddress.getByName(GROUP));
                     byte[] buf = new byte[256];
                     DatagramPacket datagramPacket = new DatagramPacket(buf, buf.length);
+                    Socket socket;
                     while(true) {
                         multicastSocket.receive(datagramPacket);
                         byte[] byteAddress = Arrays.copyOfRange(buf, 0, 3);
@@ -127,6 +131,9 @@ public class NameServer implements NameServerInterface {
                         String name = new String(Arrays.copyOfRange(byteAddress, 4, 255)).trim();
                         System.out.println("Received multicast with IP "+address+" and name "+name);
                         addNode(name, address);
+                        socket = new Socket(address, COMMUNICATIONS_PORT);
+                        DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
+                        dataOutputStream.writeUTF(""+nodeMap.size());
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
