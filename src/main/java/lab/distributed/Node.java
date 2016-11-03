@@ -180,7 +180,7 @@ public class Node {
      * de methode die moet aangeroepen worden wanneer de communicatie met een Node mislukt is
      * @param hash het id van de node waarmee de communicatie mislukt is
      */
-    public void failure(int hash) throws NotBoundException {
+    public void failure(int hash){
         try {
             NameServerInterface nameServerInterface = (NameServerInterface) Naming.lookup(nameServerName);
             int nextNode = nameServerInterface.getNextNode(hash);
@@ -190,7 +190,7 @@ public class Node {
             updateNode(nextNode,previousNode,"prev");       //naar de next node het id van de previous node sturen
             deleteNode(hash);                               //node verwijderen
 
-        } catch (RemoteException | MalformedURLException e) {
+        } catch (RemoteException | MalformedURLException | NotBoundException e) {
             e.printStackTrace();
         }
     }
