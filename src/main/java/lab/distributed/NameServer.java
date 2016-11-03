@@ -135,5 +135,14 @@ public class NameServer implements NameServerInterface {
         }).start();
     }
 
+    /**
+     * Vraag het IP op van een node.
+     * @param hash
+     * @return
+     */
+    public String getAddress(int hash) {
+        return nodeMap.get(hash);
+    }
+
 
 }

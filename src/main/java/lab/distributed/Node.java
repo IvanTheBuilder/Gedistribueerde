@@ -15,8 +15,8 @@ public class Node {
     private String location;
     private String nameServerName = "//192.168.1.1/NameServerInterface";
 
-    private HelperNode previousNode;
-    private HelperNode nextNode;
+    private int previousNode;
+    private int nextNode;
 
 
 
@@ -152,10 +152,10 @@ public class Node {
                         int hash = hashName(name);
 
                         //Als de ontvangen node tussen de vorige node en onze node ligt, is de ontvangen node de nieuwe previous
-                        if(previousNode.getHash() < hash && hash < myHash)
-                            previousNode = new HelperNode(address, hash);
-                        else if(myHash < hash && hash < nextNode.getHash())
-                            nextNode = new HelperNode(address, hash);
+                        if(previousNode < hash && hash < myHash)
+                            previousNode = hash;
+                        else if(myHash < hash && hash < nextNode)
+                            nextNode = hash;
 
                     }
                 } catch (IOException e) {
@@ -190,23 +190,4 @@ public class Node {
     }
 
 
-}
-
-class HelperNode  {
-
-    private int hash;
-    private String address;
-
-    public HelperNode(String address, int hash) {
-        this.address = address;
-        this.hash = hash;
-    }
-
-    public int getHash() {
-        return hash;
-    }
-
-    public String getAddress() {
-        return address;
-    }
 }
