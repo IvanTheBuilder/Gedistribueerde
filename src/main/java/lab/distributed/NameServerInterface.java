@@ -12,8 +12,12 @@ public interface NameServerInterface extends Remote {
 
     boolean addNode(String nodeName, String inetAddress) throws RemoteException;
 
-    boolean removeNode(String nodeName) throws RemoteException;
+    boolean removeNode(int nodeName) throws RemoteException;
 
     String getAddress(int hash) throws RemoteException;
+
+    int getNextNode(int hash) throws RemoteException;
+
+    int getPreviousNode(int hash) throws RemoteException;
 
 }
