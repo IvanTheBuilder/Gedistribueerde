@@ -50,7 +50,7 @@ public class Node {
     /**
      *  broadcast eigen adres en naam op het netwerk
      */
-    public void sendBootstrapBroadcast() {
+    private void sendBootstrapBroadcast() {
         try {
             byte[] addressData = Inet4Address.getByName(location).getAddress();
             byte[] nameData = name.getBytes();
@@ -110,7 +110,7 @@ public class Node {
     /**
      * Start de multicast listener op. Ontvang multicasts van andere nodes en worden hier behandeld
      */
-    public void startMulticastListener() {
+    private void startMulticastListener() {
         new Thread(new Runnable() {
             public void run() {
                 int hash = 0;
@@ -160,7 +160,7 @@ public class Node {
      * Verstuur een multicast bericht naar alle nodes en nameserver met message als bericht
      * @param message het bericht dat verzonden moet worden
      */
-    public void sendMulticast(byte[] message) {
+    private void sendMulticast(byte[] message) {
         DatagramSocket datagramSocket = null;
         try {
             datagramSocket = new DatagramSocket(12345);
@@ -180,7 +180,7 @@ public class Node {
      * de methode die moet aangeroepen worden wanneer de communicatie met een Node mislukt is
      * @param hash het id van de node waarmee de communicatie mislukt is
      */
-    public void failure(int hash){
+    private void failure(int hash){
         try {
             NameServerInterface nameServerInterface = (NameServerInterface) Naming.lookup(nameServerName);
             int nextNode = nameServerInterface.getNextNode(hash);
@@ -201,7 +201,7 @@ public class Node {
      * @param aanpassing de nieuwe waarde voor de parameter
      * @param nextPrev  moet de volgende of de vorige node aangepast worden? kan waarde "next" of "prev" aannemen
      */
-    public void updateNode(int target, int aanpassing, String nextPrev) {
+    private void updateNode(int target, int aanpassing, String nextPrev) {
         Socket socket;
         DataOutputStream dataOutputStream;
         try {
@@ -227,7 +227,7 @@ public class Node {
      * prev param1 = previous id param1
      * next param1 = next id param1
      */
-    public void startTCPServerSocket(){
+    private void startTCPServerSocket(){
         try {
             Integer size = null;
             Integer nextNode = null;
