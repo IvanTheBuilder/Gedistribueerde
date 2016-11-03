@@ -87,7 +87,7 @@ public class Node {
     {
         try {
             NameServerInterface nameServerInterface = (NameServerInterface) Naming.lookup(nameServerName);
-            if(!nameServerInterface.removeNode(name))
+            if(!nameServerInterface.removeNode(hashName(name)))
                 System.out.println("deze node bestaat niet");
         } catch (NotBoundException e) {
             e.printStackTrace();
