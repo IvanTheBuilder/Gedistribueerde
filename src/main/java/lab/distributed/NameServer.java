@@ -12,8 +12,7 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Created by Ivan on 12/10/2016.
@@ -22,7 +21,7 @@ import java.util.Map;
 public class NameServer implements NameServerInterface {
 
     @XmlElement(name = "nodemap")
-    Map<Integer, String> nodeMap = new HashMap<Integer, String>();
+    TreeMap<Integer, String> nodeMap = new TreeMap<>();
 
     /**
      * Multicast Config
@@ -83,15 +82,12 @@ public class NameServer implements NameServerInterface {
      */
     public String getOwner(String filename) {
         int fileHash = hashName(filename);
-        Integer[] keyArray = new Integer[nodeMap.size()];
-        nodeMap.keySet().toArray(keyArray);
-        Arrays.sort(keyArray);
         int closest = -1;
-        for (Integer integer : keyArray) {
+        for (Integer integer : nodeMap.keySet()) {
             if (integer > closest && integer < fileHash) {
                 closest = integer;
             } else
-                return nodeMap.get(closest == -1 ? keyArray[keyArray.length] : closest);
+                return nodeMap.get(closest == -1 ? nodeMap.lastKey() : closest);
         }
         if (closest != -1)
             return nodeMap.get(closest);
