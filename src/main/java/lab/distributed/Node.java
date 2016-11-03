@@ -23,10 +23,6 @@ public class Node {
     private int nextNode;
 
 
-
-
-
-
     /**
      * Multicast Config
      */
@@ -47,25 +43,13 @@ public class Node {
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
-        try {//dit moet er nog uit want dit is dubbel werk
-            NameServerInterface nameServerInterface = (NameServerInterface) Naming.lookup(nameServerName);
-            if(!nameServerInterface.addNode(name,location))
-            {
-                System.out.println("deze naam bestaat al");
-                System.exit(1);
-            }
             sendBootstrapBroadcast();
             startTCPServerSocket();
-        } catch (NotBoundException e) {
-            e.printStackTrace();
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
-
     }
 
+    /**
+     *  broadcast eigen adres en naam op het netwerk
+     */
     public void sendBootstrapBroadcast() {
         try {
             byte[] addressData = Inet4Address.getByName(location).getAddress();
@@ -83,17 +67,13 @@ public class Node {
      * Deze node kan eender welke node verwijderen uit de nameServer
      * @param hash de id van te verwijderen node
      */
-    public void deleteNode(int hash)
+    private void deleteNode(int hash)
     {
         try {
             NameServerInterface nameServerInterface = (NameServerInterface) Naming.lookup(nameServerName);
             if(!nameServerInterface.removeNode(hash))
                 System.out.println("deze node bestaat niet");
-        } catch (NotBoundException e) {
-            e.printStackTrace();
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (RemoteException e) {
+        } catch (NotBoundException | MalformedURLException | RemoteException e) {
             e.printStackTrace();
         }
 
@@ -109,13 +89,8 @@ public class Node {
     {
         try {
             NameServerInterface nameServerInterface = (NameServerInterface) Naming.lookup(nameServerName);
-            String fileLocation = nameServerInterface.getOwner(fileName);
-            return fileLocation;
-        } catch (NotBoundException e) {
-            e.printStackTrace();
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (RemoteException e) {
+            return nameServerInterface.getOwner(fileName);
+        } catch (NotBoundException | MalformedURLException | RemoteException e) {
             e.printStackTrace();
         }
         return null;
@@ -126,14 +101,9 @@ public class Node {
      */
     public void exit()
     {
-        Socket socket;
-        DataOutputStream dataOutputStream;
-        //naar de previous node het id van de next node sturen
-        updateNode(previousNode, nextNode, "next");
-        //naar de next node het id van de previous node sturen
-        updateNode(nextNode, previousNode, "prev");
-        //node verwijderen uit de nameserver
-        deleteNode(hashName(name));
+        updateNode(previousNode, nextNode, "next");     //naar de previous node het id van de next node sturen
+        updateNode(nextNode, previousNode, "prev");     //naar de next node het id van de previous node sturen
+        deleteNode(hashName(name));                     //node verwijderen uit de nameserver
         System.exit(0);
     }
 
@@ -185,7 +155,7 @@ public class Node {
 
     /**
      * Verstuur een multicast bericht naar alle nodes en nameserver met message als bericht
-     * @param message
+     * @param message het bericht dat verzonden moet worden
      */
     public void sendMulticast(byte[] message) {
         DatagramSocket datagramSocket = null;
@@ -208,26 +178,17 @@ public class Node {
      * de methode die moet aangeroepen worden wanneer de communicatie met een Node mislukt is
      * @param hash het id van de node waarmee de communicatie mislukt is
      */
-    public void failure(int hash) {
-        Socket socket;
-        DataOutputStream dataOutputStream;
+    public void failure(int hash) throws NotBoundException {
         try {
             NameServerInterface nameServerInterface = (NameServerInterface) Naming.lookup(nameServerName);
             int nextNode = nameServerInterface.getNextNode(hash);
             int previousNode = nameServerInterface.getPreviousNode(hash);
 
-            //naar de previous node het id van de next node sturen
-            updateNode(previousNode,nextNode,"next");
-            //naar de next node het id van de previous node sturen
-            updateNode(nextNode,previousNode,"prev");
+            updateNode(previousNode,nextNode,"next");       //naar de previous node het id van de next node sturen
+            updateNode(nextNode,previousNode,"prev");       //naar de next node het id van de previous node sturen
+            deleteNode(hash);                               //node verwijderen
 
-            deleteNode(hash);
-
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (NotBoundException e) {
+        } catch (RemoteException | MalformedURLException e) {
             e.printStackTrace();
         }
     }
@@ -241,28 +202,19 @@ public class Node {
     public void updateNode(int target, int aanpassing, String nextPrev) {
         Socket socket;
         DataOutputStream dataOutputStream;
-
         try {
             NameServerInterface nameServerInterface = (NameServerInterface) Naming.lookup(nameServerName);
             socket = new Socket(nameServerInterface.getAddress(target), COMMUNICATIONS_PORT);
             dataOutputStream = new DataOutputStream(socket.getOutputStream());
             dataOutputStream.writeUTF(nextPrev + " " + aanpassing); //als nextPrev een verkeerde waarde heeft wordt dit opgevangen in de listener
             dataOutputStream.close();
-        } catch (NotBoundException e) {
-            e.printStackTrace();
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        } catch (UnknownHostException e) {
+        } catch (NotBoundException | MalformedURLException | UnknownHostException | RemoteException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
             //TODO: failure methode aanroepen
         }
     }
-
-
 
     /**
      * Start de TCPServerSocket, er wordt continu geluisterd voor wanneer
@@ -321,8 +273,11 @@ public class Node {
         }
     }
 
-
-
+    /**
+     * hash genereren van een bepaalde naam
+     * @param name de naam waarvan de hash wordt gegenereerd
+     * @return  de gegenereerde hash
+     */
     public static final int hashName(String name) {
         return Math.abs(name.hashCode() % 32768);
     }
