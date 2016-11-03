@@ -1,5 +1,6 @@
 package lab.distributed;
 
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.*;
 import java.rmi.Naming;
@@ -28,6 +29,8 @@ public class Node {
      */
     public static final String GROUP = "225.1.2.3";
     public static final int MULTICAST_PORT = 12345;
+
+    public static final int COMMUNICATIONS_PORT =  4000;
 
     /**
      * De constructor gaat een nieuwe node aanmaken in de nameserver met de gekozen naam en het ip adres van de machine waarop hij gestart wordt.
@@ -151,9 +154,20 @@ public class Node {
                         String name = new String(Arrays.copyOfRange(byteAddress, 4, 255)).trim();
                         int hash = hashName(name);
 
-                        //Als de ontvangen node tussen de vorige node en onze node ligt, is de ontvangen node de nieuwe previous
-                        if(previousNode < hash && hash < myHash)
+                        /*
+                        Indien nieuwe node tussen vorige node en deze node ligt, update vorige node en vertel tegen
+                        nieuwe node zijn buren.
+                         */
+                        if(previousNode < hash && hash < myHash) {
                             previousNode = hash;
+                            Socket socket = new Socket(address, COMMUNICATIONS_PORT);
+                            DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
+                            dataOutputStream.writeUTF("prevnext "+myHash+" "+nextNode);
+                            dataOutputStream.close();
+                        }
+                        /**
+                         * Anders, als nieuwe node tussen mij en volgende node ligt, pas aan.
+                         */
                         else if(myHash < hash && hash < nextNode)
                             nextNode = hash;
 
