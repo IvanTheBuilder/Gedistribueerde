@@ -122,7 +122,6 @@ public class NameServer implements NameServerInterface {
                     DatagramPacket datagramPacket = new DatagramPacket(buf, buf.length);
                     while(true) {
                         multicastSocket.receive(datagramPacket);
-                        //TODO: hieronder multicast code van ontvangen pakket met buf als ontvangen data7
                         byte[] byteAddress = Arrays.copyOfRange(buf, 0, 3);
                         String address = InetAddress.getByAddress(byteAddress).getHostAddress();
                         String name = new String(Arrays.copyOfRange(byteAddress, 4, 255)).trim();

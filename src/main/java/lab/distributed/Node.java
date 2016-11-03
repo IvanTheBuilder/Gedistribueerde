@@ -5,15 +5,22 @@ import java.net.*;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.util.Arrays;
 
-/**
- * Created by Ivan on 24/10/2016.
- */
+
 public class Node {
 
     private String name;
+    private int myHash;
     private String location;
     private String nameServerName = "//192.168.1.1/NameServerInterface";
+
+    private HelperNode previousNode;
+    private HelperNode nextNode;
+
+
+
+
 
 
     /**
@@ -28,6 +35,7 @@ public class Node {
      */
     public Node(String name){
         this.name=name;
+        this.myHash=hashName(name);
         try {
             location=InetAddress.getLocalHost().getHostAddress();
         } catch (UnknownHostException e) {
@@ -137,9 +145,18 @@ public class Node {
                     byte[] buf = new byte[256];
                     DatagramPacket datagramPacket = new DatagramPacket(buf, buf.length);
                     while(true) {
-                    multicastSocket.receive(datagramPacket);
-                        //TODO: hieronder multicast code van ontvangen pakket met buf als ontvangen data
-                    System.out.println(new String(buf));
+                        multicastSocket.receive(datagramPacket);
+                        byte[] byteAddress = Arrays.copyOfRange(buf, 0, 3);
+                        String address = InetAddress.getByAddress(byteAddress).getHostAddress();
+                        String name = new String(Arrays.copyOfRange(byteAddress, 4, 255)).trim();
+                        int hash = hashName(name);
+
+                        //Als de ontvangen node tussen de vorige node en onze node ligt, is de ontvangen node de nieuwe previous
+                        if(previousNode.getHash() < hash && hash < myHash)
+                            previousNode = new HelperNode(address, hash);
+                        else if(myHash < hash && hash < nextNode.getHash())
+                            nextNode = new HelperNode(address, hash);
+
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -168,4 +185,28 @@ public class Node {
 
     }
 
+    public static final int hashName(String name) {
+        return Math.abs(name.hashCode() % 32768);
+    }
+
+
+}
+
+class HelperNode  {
+
+    private int hash;
+    private String address;
+
+    public HelperNode(String address, int hash) {
+        this.address = address;
+        this.hash = hash;
+    }
+
+    public int getHash() {
+        return hash;
+    }
+
+    public String getAddress() {
+        return address;
+    }
 }
