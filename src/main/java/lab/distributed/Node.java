@@ -177,6 +177,7 @@ public class Node {
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
+                    //TODO: failure methode aanroepen
                 }
             }
         }).start();
@@ -198,6 +199,7 @@ public class Node {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
+            //TODO: failure methode aanroepen
         }
 
     }
