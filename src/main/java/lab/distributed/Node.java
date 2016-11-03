@@ -1,8 +1,7 @@
 package lab.distributed;
 
-import java.net.InetAddress;
-import java.net.MalformedURLException;
-import java.net.UnknownHostException;
+import java.io.IOException;
+import java.net.*;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -15,6 +14,13 @@ public class Node {
     private String name;
     private String location;
     private String nameServerName = "//192.168.1.1/NameServerInterface";
+
+
+    /**
+     * Multicast Config
+     */
+    public static final String GROUP = "225.1.2.3";
+    public static final int MULTICAST_PORT = 12345;
 
     /**
      * De constructor gaat een nieuwe node aanmaken in de nameserver met de gekozen naam en het ip adres van de machine waarop hij gestart wordt.
@@ -34,6 +40,7 @@ public class Node {
                 System.out.println("deze naam bestaat al");
                 System.exit(1);
             }
+            sendBootstrapBroadcast();
         } catch (NotBoundException e) {
             e.printStackTrace();
         } catch (MalformedURLException e) {
@@ -42,6 +49,19 @@ public class Node {
             e.printStackTrace();
         }
 
+    }
+
+    public void sendBootstrapBroadcast() {
+        try {
+            byte[] addressData = Inet4Address.getByName(location).getAddress();
+            byte[] nameData = name.getBytes();
+            byte[] message = new byte[addressData.length + nameData.length];
+            System.arraycopy(addressData, 0, message, 0, addressData.length);
+            System.arraycopy(nameData, 0, message, addressData.length, nameData.length);
+            sendMulticast(message);
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -101,6 +121,49 @@ public class Node {
             e.printStackTrace();
         }finally {
             System.exit(0);
+        }
+
+    }
+
+    /**
+     * Start de multicast listener op. Ontvang multicasts van andere nodes en worden hier behandeld
+     */
+    public void startMulticastListener() {
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+                    MulticastSocket multicastSocket = new MulticastSocket(MULTICAST_PORT);
+                    multicastSocket.joinGroup(InetAddress.getByName(GROUP));
+                    byte[] buf = new byte[256];
+                    DatagramPacket datagramPacket = new DatagramPacket(buf, buf.length);
+                    while(true) {
+                    multicastSocket.receive(datagramPacket);
+                        //TODO: hieronder multicast code van ontvangen pakket met buf als ontvangen data
+                    System.out.println(new String(buf));
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+    /**
+     * Verstuur een multicast bericht naar alle nodes en nameserver met message als bericht
+     * @param message
+     */
+    public void sendMulticast(byte[] message) {
+        DatagramSocket datagramSocket = null;
+        try {
+            datagramSocket = new DatagramSocket(12345);
+            datagramSocket.send(new DatagramPacket(message, message.length, InetAddress.getByName(GROUP), MULTICAST_PORT));
+            datagramSocket.close();
+        } catch (SocketException e) {
+            e.printStackTrace();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
     }

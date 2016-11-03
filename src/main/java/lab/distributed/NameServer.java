@@ -7,6 +7,10 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.io.File;
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.InetAddress;
+import java.net.MulticastSocket;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,6 +23,16 @@ public class NameServer implements NameServerInterface {
 
     @XmlElement(name = "nodemap")
     Map<Integer, String> nodeMap = new HashMap<Integer, String>();
+
+    /**
+     * Multicast Config
+     */
+    public static final String GROUP = "225.1.2.3";
+    public static final int MULTICAST_PORT = 12345;
+
+    public NameServer() {
+        startMulticastListener();
+    }
 
     public static NameServer fromDisk() {
         try {
@@ -96,6 +110,33 @@ public class NameServer implements NameServerInterface {
         } catch (JAXBException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Start de multicast listener op. Ontvang multicasts van andere nodes en worden hier behandeld
+     */
+    public void startMulticastListener() {
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+                    MulticastSocket multicastSocket = new MulticastSocket(MULTICAST_PORT);
+                    multicastSocket.joinGroup(InetAddress.getByName(GROUP));
+                    byte[] buf = new byte[256];
+                    DatagramPacket datagramPacket = new DatagramPacket(buf, buf.length);
+                    while(true) {
+                        multicastSocket.receive(datagramPacket);
+                        //TODO: hieronder multicast code van ontvangen pakket met buf als ontvangen data7
+                        byte[] byteAddress = Arrays.copyOfRange(buf, 0, 3);
+                        String address = InetAddress.getByAddress(byteAddress).getHostAddress();
+                        String name = new String(Arrays.copyOfRange(byteAddress, 4, 255)).trim();
+                        System.out.println("Received multicast with IP "+address+" and name "+name);
+                        addNode(name, address);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
     }
 
 
