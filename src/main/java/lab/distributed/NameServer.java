@@ -148,6 +148,7 @@ public class NameServer implements NameServerInterface {
                             dataOutputStream.writeUTF("size "+nodeMap.size());
                         else
                             dataOutputStream.writeUTF("duplicate ");
+
                         dataOutputStream.close();
                     }
                 } catch (IOException e) {
