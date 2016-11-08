@@ -14,4 +14,5 @@ public class TestNode1 {
         scanner.nextLine();// wachten op invoer van de gebruiker
         node.exit();//afsluiten testen
     }
+
 }
