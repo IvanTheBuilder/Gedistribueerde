@@ -140,10 +140,12 @@ public class NameServer implements NameServerInterface {
                         String address = InetAddress.getByAddress(byteAddress).getHostAddress();
                         String name = new String(Arrays.copyOfRange(byteAddress, 4, 255)).trim();
                         System.out.println("Received multicast with IP "+address+" and name "+name);
-                        addNode(name, address);
                         socket = new Socket(address, COMMUNICATIONS_PORT);
                         DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
-                        dataOutputStream.writeUTF("size "+nodeMap.size());
+                        if(addNode(name, address))
+                            dataOutputStream.writeUTF("size "+nodeMap.size());
+                        else
+                            dataOutputStream.writeUTF("duplicate ");
                         dataOutputStream.close();
                     }
                 } catch (IOException e) {
@@ -152,6 +154,7 @@ public class NameServer implements NameServerInterface {
             }
         }).start();
     }
+
 
     /**
      * Vraag het IP op van een node.
