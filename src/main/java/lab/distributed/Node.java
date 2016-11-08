@@ -135,7 +135,7 @@ public class Node {
                         System.out.println("multicast received from " + name + " from address " + address);
                         hash = hashName(name);
 
-                        if (hash != nextNode && hash != previousNode) {
+                        if (hash != nextNode &&+ hash != previousNode) {
                             /*
                             Indien nieuwe node tussen mij en de volgende node ligt, update volgende node en vertel tegen
                             nieuwe node zijn buren.
