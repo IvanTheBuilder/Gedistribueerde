@@ -22,15 +22,14 @@ import java.util.TreeMap;
 @XmlRootElement(name = "nameserver")
 public class NameServer implements NameServerInterface {
 
-    @XmlElement(name = "nodemap")
-    TreeMap<Integer, String> nodeMap = new TreeMap<>();
-
     /**
      * Multicast Config
      */
     public static final String GROUP = "225.1.2.3";
     public static final int MULTICAST_PORT = 12345;
-    public static final int COMMUNICATIONS_PORT =  4000;
+    public static final int COMMUNICATIONS_PORT = 4000;
+    @XmlElement(name = "nodemap")
+    TreeMap<Integer, String> nodeMap = new TreeMap<>();
 
     public NameServer() {
         startMulticastListener();
@@ -136,16 +135,16 @@ public class NameServer implements NameServerInterface {
                     byte[] buf = new byte[256];
                     DatagramPacket datagramPacket = new DatagramPacket(buf, buf.length);
                     Socket socket;
-                    while(true) {
+                    while (true) {
                         multicastSocket.receive(datagramPacket);
                         byte[] byteAddress = Arrays.copyOfRange(buf, 0, 4);
                         String address = InetAddress.getByAddress(byteAddress).getHostAddress();
                         String name = new String(Arrays.copyOfRange(buf, 4, 255)).trim();
-                        System.out.println("Received multicast with IP "+address+" and name "+name);
+                        System.out.println("Received multicast with IP " + address + " and name " + name);
                         socket = new Socket(address, COMMUNICATIONS_PORT);
                         DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
-                        if(addNode(name, address))
-                            dataOutputStream.writeUTF("size "+nodeMap.size());
+                        if (addNode(name, address))
+                            dataOutputStream.writeUTF("size " + nodeMap.size());
                         else
                             dataOutputStream.writeUTF("duplicate ");
                         dataOutputStream.close();
@@ -159,6 +158,7 @@ public class NameServer implements NameServerInterface {
 
     /**
      * Vraag het IP op van een node.
+     *
      * @param hash
      * @return
      */
