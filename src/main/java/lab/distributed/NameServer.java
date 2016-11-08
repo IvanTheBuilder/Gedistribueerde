@@ -84,8 +84,8 @@ public class NameServer implements NameServerInterface {
     }
 
     public int getNextNode(int hash) {
-        Integer previous = nodeMap.higherKey(hash);
-        return previous != null ? previous.intValue() : nodeMap.firstKey();
+        Integer next = nodeMap.higherKey(hash);
+        return next != null ? next.intValue() : nodeMap.firstKey();
     }
 
     /**
