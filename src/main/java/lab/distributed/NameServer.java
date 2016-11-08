@@ -143,11 +143,16 @@ public class NameServer implements NameServerInterface {
                         System.out.println("Received multicast with IP " + address + " and name " + name);
                         socket = new Socket(address, COMMUNICATIONS_PORT);
                         DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
-                        if (addNode(name, address))
+                        if (addNode(name, address)) {
                             dataOutputStream.writeUTF("size " + nodeMap.size());
-                        else
+                            System.out.println("Successfully added node to map.");
+                        }
+                        else {
                             dataOutputStream.writeUTF("duplicate ");
+                            System.out.println("Duplicate in map.");
+                        }
                         dataOutputStream.close();
+                        System.out.println("Closed datastream");
                     }
                 } catch (IOException e) {
                     e.printStackTrace();

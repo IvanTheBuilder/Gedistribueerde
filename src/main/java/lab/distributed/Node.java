@@ -174,7 +174,7 @@ public class Node {
     private void sendMulticast(byte[] message) {
         DatagramSocket datagramSocket = null;
         try {
-            datagramSocket = new DatagramSocket(12345);
+            datagramSocket = new DatagramSocket(MULTICAST_PORT, InetAddress.getLocalHost());
             datagramSocket.send(new DatagramPacket(message, message.length, InetAddress.getByName(GROUP), MULTICAST_PORT));
             System.out.println("multicast send from " + name);
             datagramSocket.close();
@@ -280,7 +280,7 @@ public class Node {
                                     System.out.println("next= " + new Socket(nameServerInterface.getAddress(newNextNode), COMMUNICATIONS_PORT));//na testen te verwijderen
                                     break;
                                 case "duplicate":
-                                    System.out.println("Deze naam besdtaat al in het domein.");
+                                    System.out.println("Deze naam bestaat al in het domein.");
                                     System.out.println("Geef een nieuwe naam");
                                     Scanner scanner = new Scanner(System.in);
                                     name = scanner.nextLine();
