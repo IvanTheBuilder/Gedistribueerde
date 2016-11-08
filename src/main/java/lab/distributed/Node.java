@@ -125,6 +125,7 @@ public class Node {
                         byte[] byteAddress = Arrays.copyOfRange(buf, 0, 3);
                         String address = InetAddress.getByAddress(byteAddress).getHostAddress();
                         String name = new String(Arrays.copyOfRange(byteAddress, 4, 255)).trim();
+                        System.out.println("multicast received from " + name + " from address " + address);
                         hash = hashName(name);
 
                         if(hash != nextNode & hash != previousNode) {
