@@ -138,9 +138,9 @@ public class NameServer implements NameServerInterface {
                     Socket socket;
                     while(true) {
                         multicastSocket.receive(datagramPacket);
-                        byte[] byteAddress = Arrays.copyOfRange(buf, 0, 3);
+                        byte[] byteAddress = Arrays.copyOfRange(buf, 0, 4);
                         String address = InetAddress.getByAddress(byteAddress).getHostAddress();
-                        String name = new String(Arrays.copyOfRange(byteAddress, 4, 255)).trim();
+                        String name = new String(Arrays.copyOfRange(buf, 4, 255)).trim();
                         System.out.println("Received multicast with IP "+address+" and name "+name);
                         socket = new Socket(address, COMMUNICATIONS_PORT);
                         DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
@@ -156,7 +156,6 @@ public class NameServer implements NameServerInterface {
             }
         }).start();
     }
-
 
     /**
      * Vraag het IP op van een node.
