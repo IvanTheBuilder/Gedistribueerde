@@ -85,6 +85,8 @@ public class Node {
             e.printStackTrace();
         }
 
+
+
     }
 
     /**
@@ -127,7 +129,7 @@ public class Node {
                     DatagramPacket datagramPacket = new DatagramPacket(buf, buf.length);
                     while (true) {
                         multicastSocket.receive(datagramPacket);
-                        byte[] byteAddress = Arrays.copyOfRange(buf, 0, 3);
+                        byte[] byteAddress = Arrays.copyOfRange(buf, 0, 4);
                         String address = InetAddress.getByAddress(byteAddress).getHostAddress();
                         String name = new String(Arrays.copyOfRange(byteAddress, 4, 255)).trim();
                         System.out.println("multicast received from " + name + " from address " + address);
@@ -250,7 +252,7 @@ public class Node {
                     sendBootstrapBroadcast();
                     NameServerInterface nameServerInterface = (NameServerInterface) Naming.lookup(nameServerName);//na testen te verwijderen
                     while (true) {
-                        Socket clientSocket = serverSocket.accept();
+                        Socket clientSocket = serverSocket.accept();System.out.println("Received TCP command from "+clientSocket.getInetAddress().getHostAddress());
                         DataInputStream dataInputStream = new DataInputStream(clientSocket.getInputStream());
                         String buf = new String();
                         try {
@@ -262,7 +264,7 @@ public class Node {
                             //socket gaat gewoon voort luisteren naar andere inkomende verbindingen.
                         }
                         String[] splitted = buf.split("\\s");
-
+                        System.out.println("Received TCP command from "+clientSocket.getInetAddress().getHostAddress()+": "+splitted[0]);
                         for (int i = 0; i < splitted.length / 2; i++) {
                             switch (splitted[i]) {
                                 case "size":
