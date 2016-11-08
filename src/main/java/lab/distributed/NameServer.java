@@ -116,8 +116,6 @@ public class NameServer implements NameServerInterface {
             Marshaller marshaller = context.createMarshaller();
             marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
             marshaller.marshal(this, new File("nameserver.xml"));
-            Unmarshaller unmarshaller = context.createUnmarshaller();
-            NameServer xmlunmarshalled = (NameServer) unmarshaller.unmarshal(new File("nameserver.xml"));
         } catch (JAXBException e) {
             e.printStackTrace();
         }
@@ -127,8 +125,10 @@ public class NameServer implements NameServerInterface {
      * Start de multicast listener op. Ontvang multicasts van andere nodes en worden hier behandeld
      */
     public void startMulticastListener() {
+        System.out.println("Start multicastlistener called!");
         new Thread(new Runnable() {
             public void run() {
+                System.out.println("Started multicast Listener");
                 try {
                     MulticastSocket multicastSocket = new MulticastSocket(MULTICAST_PORT);
                     multicastSocket.joinGroup(InetAddress.getByName(GROUP));
@@ -148,7 +148,7 @@ public class NameServer implements NameServerInterface {
                             System.out.println("Successfully added node to map.");
                         }
                         else {
-                            dataOutputStream.writeUTF("duplicate");
+                            dataOutputStream.writeUTF("duplicate test");
                             System.out.println("Duplicate in map.");
                         }
                         dataOutputStream.close();
