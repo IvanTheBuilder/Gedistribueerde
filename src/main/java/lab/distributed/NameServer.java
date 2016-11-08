@@ -148,7 +148,7 @@ public class NameServer implements NameServerInterface {
                             System.out.println("Successfully added node to map.");
                         }
                         else {
-                            dataOutputStream.writeUTF("duplicate ");
+                            dataOutputStream.writeUTF("duplicate");
                             System.out.println("Duplicate in map.");
                         }
                         dataOutputStream.close();

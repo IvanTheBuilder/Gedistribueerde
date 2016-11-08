@@ -254,15 +254,8 @@ public class Node {
                     while (true) {
                         Socket clientSocket = serverSocket.accept();System.out.println("Received TCP command from "+clientSocket.getInetAddress().getHostAddress());
                         DataInputStream dataInputStream = new DataInputStream(clientSocket.getInputStream());
-                        String buf = new String();
-                        try {
-                            while (true) {
-                                buf += dataInputStream.readUTF() + " ";
-                            }
-                        } catch (IOException e) {
-                            //wanneer exception gevangen wordt, wil dit zeggen dat client klaar is
-                            //socket gaat gewoon voort luisteren naar andere inkomende verbindingen.
-                        }
+                        String buf = dataInputStream.readUTF();
+                        System.out.println("Full command: "+buf);
                         String[] splitted = buf.split("\\s");
                         System.out.println("Received TCP command from "+clientSocket.getInetAddress().getHostAddress()+": "+splitted[0]);
                             switch (splitted[0]) {
