@@ -1,6 +1,5 @@
 package lab.distributed;
 
-import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -9,7 +8,6 @@ import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.Arrays;
-import java.util.InputMismatchException;
 import java.util.Scanner;
 
 
@@ -169,6 +167,7 @@ public class Node {
         try {
             datagramSocket = new DatagramSocket(12345);
             datagramSocket.send(new DatagramPacket(message, message.length, InetAddress.getByName(GROUP), MULTICAST_PORT));
+            System.out.println("multicast send from " + name);
             datagramSocket.close();
         } catch (SocketException e) {
             e.printStackTrace();
