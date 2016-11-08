@@ -127,11 +127,11 @@ public class Node {
                         hash = hashName(name);
 
                         /*
-                        Indien nieuwe node tussen vorige node en deze node ligt, update vorige node en vertel tegen
+                        Indien nieuwe node tussen mij en de volgende node ligt, update volgende node en vertel tegen
                         nieuwe node zijn buren.
                          */
-                        if (previousNode < hash && hash < myHash) {
-                            previousNode = hash;
+                        if (myHash < hash && hash < nextNode) {
+                            nextNode = hash;
                             Socket socket = new Socket(address, COMMUNICATIONS_PORT);
                             DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
                             dataOutputStream.writeUTF("prev " + myHash);
@@ -140,10 +140,10 @@ public class Node {
                             dataOutputStream.close();
                         }
                         /**
-                         * Anders, als nieuwe node tussen mij en volgende node ligt, pas aan.
+                         * Anders, als nieuwe node tussen de vorige node en mij ligt, pas aan.
                          */
-                        else if (myHash < hash && hash < nextNode)
-                            nextNode = hash;
+                        else if (previousNode < hash && hash < myHash)
+                            previousNode = hash;
 
                     }
                 } catch (UnknownHostException e) {
