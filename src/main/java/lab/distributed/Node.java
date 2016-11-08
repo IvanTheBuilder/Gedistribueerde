@@ -44,8 +44,10 @@ public class Node {
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
-            sendBootstrapBroadcast();
+
             startTCPServerSocket();
+            startMulticastListener();
+
     }
 
     /**
@@ -235,6 +237,8 @@ public class Node {
             Integer nextNode = null;
             Integer previousNode = null;
             ServerSocket serverSocket = new ServerSocket(COMMUNICATIONS_PORT);
+            sendBootstrapBroadcast();
+            NameServerInterface nameServerInterface = (NameServerInterface) Naming.lookup(nameServerName);//na testen te verwijderen
             while(true) {
                 Socket clientSocket = serverSocket.accept();
                 DataInputStream dataInputStream = new DataInputStream(clientSocket.getInputStream());
@@ -253,12 +257,15 @@ public class Node {
                     switch (splitted[i]) {
                         case "size":
                             size = Integer.parseInt(splitted[i + 1]);
+                            System.out.println("size= "+size);
                             break;
                         case "prev":
                             previousNode = Integer.parseInt(splitted[i + 1]);
+                            System.out.println("prev= "+ new Socket(nameServerInterface.getAddress(previousNode), COMMUNICATIONS_PORT));//na testen te verwijderen
                             break;
                         case "next":
                             nextNode = Integer.parseInt(splitted[i + 1]);
+                            System.out.println("next= "+ new Socket(nameServerInterface.getAddress(nextNode), COMMUNICATIONS_PORT));//na testen te verwijderen
                             break;
                         case "duplicate":
                             System.out.println("Deze naam besdtaat al in het domein.");
@@ -279,7 +286,9 @@ public class Node {
                     }
                 }
             }
-    } catch (IOException e) {
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (NotBoundException e) {//na testen te verwijderen
             e.printStackTrace();
         }
     }
