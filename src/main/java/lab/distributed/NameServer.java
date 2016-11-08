@@ -75,7 +75,9 @@ public class NameServer implements NameServerInterface {
      * @return Geeft true terug als node is gevonden en verwijderd. Geeft false indien node niet gevonden.
      */
     public boolean removeNode(int nodeName) {
-        return nodeMap.remove(nodeName) != null;
+        boolean temp = nodeMap.remove(nodeName) != null;
+        saveToDisk();
+        return temp;
     }
 
     public int getPreviousNode(int hash) {
@@ -110,11 +112,11 @@ public class NameServer implements NameServerInterface {
 
     public void saveToDisk() {
         try {
+            System.out.println(nodeMap);    //enkel om te testen
             JAXBContext context = JAXBContext.newInstance(NameServer.class);
             Marshaller marshaller = context.createMarshaller();
             marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
             marshaller.marshal(this, new File("nameserver.xml"));
-
             Unmarshaller unmarshaller = context.createUnmarshaller();
             NameServer xmlunmarshalled = (NameServer) unmarshaller.unmarshal(new File("nameserver.xml"));
         } catch (JAXBException e) {

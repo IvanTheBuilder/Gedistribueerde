@@ -68,7 +68,7 @@ public class Node {
      * Deze node kan eender welke node verwijderen uit de nameServer
      * @param hash de id van te verwijderen node
      */
-    private void deleteNode(int hash)
+    public void deleteNode(int hash)
     {
         try {
             NameServerInterface nameServerInterface = (NameServerInterface) Naming.lookup(nameServerName);
