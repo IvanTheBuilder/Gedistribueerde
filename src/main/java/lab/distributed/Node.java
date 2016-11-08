@@ -10,6 +10,7 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.Arrays;
 import java.util.InputMismatchException;
+import java.util.Scanner;
 
 
 public class Node {
@@ -126,25 +127,26 @@ public class Node {
                         String name = new String(Arrays.copyOfRange(byteAddress, 4, 255)).trim();
                         hash = hashName(name);
 
-                        /*
-                        Indien nieuwe node tussen mij en de volgende node ligt, update volgende node en vertel tegen
-                        nieuwe node zijn buren.
-                         */
-                        if (myHash < hash && hash < nextNode) {
-                            nextNode = hash;
-                            Socket socket = new Socket(address, COMMUNICATIONS_PORT);
-                            DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
-                            dataOutputStream.writeUTF("prev " + myHash);
-                            dataOutputStream.writeUTF("next " + nextNode);
+                        if(hash != nextNode & hash != previousNode) {
+                            /*
+                            Indien nieuwe node tussen mij en de volgende node ligt, update volgende node en vertel tegen
+                            nieuwe node zijn buren.
+                            */
+                            if (myHash < hash && hash < nextNode) {
+                                nextNode = hash;
+                                Socket socket = new Socket(address, COMMUNICATIONS_PORT);
+                                DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
+                                dataOutputStream.writeUTF("prev " + myHash);
+                                dataOutputStream.writeUTF("next " + nextNode);
 
-                            dataOutputStream.close();
+                                dataOutputStream.close();
+                            }
+                            /**
+                             * Anders, als nieuwe node tussen de vorige node en mij ligt, pas aan.
+                             */
+                            else if (previousNode < hash && hash < myHash)
+                                previousNode = hash;
                         }
-                        /**
-                         * Anders, als nieuwe node tussen de vorige node en mij ligt, pas aan.
-                         */
-                        else if (previousNode < hash && hash < myHash)
-                            previousNode = hash;
-
                     }
                 } catch (UnknownHostException e) {
                     e.printStackTrace();
@@ -257,6 +259,13 @@ public class Node {
                             break;
                         case "next":
                             nextNode = Integer.parseInt(splitted[i + 1]);
+                            break;
+                        case "duplicate":
+                            System.out.println("Deze naam besdtaat al in het domein.");
+                            System.out.println("Geef een nieuwe naam");
+                            Scanner scanner = new Scanner(System.in);
+                            name = scanner.nextLine();
+                            sendBootstrapBroadcast();
                             break;
                     }
                 }
