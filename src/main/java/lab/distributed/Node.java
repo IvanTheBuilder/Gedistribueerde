@@ -22,7 +22,7 @@ public class Node {
     private String name;
     private int myHash;
     private String location;
-    private String nameServerName = "//192.168.1.1/NameServerInterface";
+    private String nameServerName = "//192.168.1.143/NameServerInterface";
     private int previousNode;
     private int nextNode;
 
@@ -40,8 +40,13 @@ public class Node {
             e.printStackTrace();
         }
 
-        startTCPServerSocket();
         startMulticastListener();
+        try {
+            Thread.sleep(500); // Start TCP socket a second after multicast listener to prevent deadlock.
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        startTCPServerSocket();
 
     }
 
@@ -109,6 +114,7 @@ public class Node {
      * deze node wordt verwijderd uit de nameserver en sluit af
      */
     public void exit() {
+        System.out.println("Leaving the network and updating my neighbours...");
         updateNode(previousNode, nextNode, "next");     //naar de previous node het id van de next node sturen
         updateNode(nextNode, previousNode, "prev");     //naar de next node het id van de previous node sturen
         deleteNode(hashName(name));                     //node verwijderen uit de nameserver
@@ -132,27 +138,59 @@ public class Node {
                         byte[] byteAddress = Arrays.copyOfRange(buf, 0, 4);
                         String address = InetAddress.getByAddress(byteAddress).getHostAddress();
                         String name = new String(Arrays.copyOfRange(byteAddress, 4, 255)).trim();
-                        System.out.println("multicast received from " + name + " from address " + address);
                         hash = hashName(name);
 
-                        if (hash != nextNode && hash != previousNode) {
-                            /*
-                            Indien nieuwe node tussen mij en de volgende node ligt, update volgende node en vertel tegen
-                            nieuwe node zijn buren.
-                            */
-                            if (myHash < hash && hash < nextNode) {
-                                nextNode = hash;
-                                Socket socket = new Socket(address, COMMUNICATIONS_PORT);
-                                DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
-                                dataOutputStream.writeUTF("prev " + myHash);
-                                dataOutputStream.writeUTF("next " + nextNode);
-                                dataOutputStream.close();
-                            }
+                        /**
+                         * Ga eerst na of we de enigste node waren in het netwerk. Zo ja, zet vorige en volgende naar
+                         * de nieuwe node, en zet die van de nieuwe node naar ons.
+                         * https://gyazo.com/f0a9b650813f46d1b98ac63bb6b396fb
+                         */
+                        if(previousNode == myHash && nextNode == myHash) {
+                            previousNode = hash;
+                            nextNode = hash;
+                            Socket socket = new Socket(address, COMMUNICATIONS_PORT);
+                            DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
+                            dataOutputStream.writeUTF("prev " + myHash);
+                            dataOutputStream.writeUTF("next " + myHash);
+                            dataOutputStream.close();
+                            System.out.println("A second node has joined. I've set my previous and next node to him and updated him.");
+                        }
+                        /**
+                         * Hierna gaan we na of de node tussen ons en één van onze buren ligt
+                         */
+                        else if((myHash < hash && hash < nextNode)
+                                || (nextNode < myHash && (hash > myHash || hash < nextNode))) {
                             /**
-                             * Anders, als nieuwe node tussen de vorige node en mij ligt, pas aan.
+                             * SITUATIE 1: (eerste deel van if-case)
+                             * De node ligt tussen mij en mijn volgende buur. De nieuwe node is mijn volgende en ik ben
+                             * de vorige van de nieuwe node. Ik zeg dit tegen de nieuwe node en pas mijn volgende aan.
                              */
-                            else if (previousNode < hash && hash < myHash)
-                                previousNode = hash;
+                            /**
+                             * SITUATIE 2: (tweede monstreuze deel van if-case)
+                             * Ik zit aan het einde van de kring want mijn volgende node is lager dan mij.
+                             * De nieuwe node ligt boven mij, of ligt onder mijn volgende (laagste) node. Ik licht
+                             * de nieuwe node in over zijn buren en pas mijn volgende aan.
+                             */
+                            Socket socket = new Socket(address, COMMUNICATIONS_PORT);
+                            DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
+                            dataOutputStream.writeUTF("prev " + myHash);
+                            dataOutputStream.writeUTF("next " + nextNode);
+                            dataOutputStream.close();
+                            System.out.printf("A node (%d) joined between me (%d) and my next neighbour (%d). Updating accordingly...\nWelcome %s!",hash, myHash, nextNode, name);
+                            nextNode = hash;
+                        }
+                        else if ((previousNode < hash && hash < myHash)
+                                || (previousNode > myHash && (hash < myHash || hash > nextNode))) {
+                            /**
+                             * De node ligt tussen mijn vorige buur en mij. Mijn vorige buur zal de nieuwe node
+                             * over zijn nieuwe buren informeren. Ik pas enkel mijn vorige node aan.
+                             */
+                            System.out.printf("A node (%d) joined between my previous neighbour (%d) and me. Updating accordingly...\n" +
+                                    "Welcome %s!",hash, previousNode, myHash, name);
+                            previousNode = hash;
+                        } else {
+                            System.out.printf("A node (%d) joined but isn't between my previous or next neighbour.\n" +
+                                    "Welcome %s!",hash, name);
                         }
                     }
                 } catch (UnknownHostException e) {
@@ -175,7 +213,6 @@ public class Node {
         try {
             datagramSocket = new DatagramSocket(MULTICAST_PORT, InetAddress.getLocalHost());
             datagramSocket.send(new DatagramPacket(message, message.length, InetAddress.getByName(GROUP), MULTICAST_PORT));
-            System.out.println("multicast send from " + name);
             datagramSocket.close();
         } catch (SocketException e) {
             e.printStackTrace();
@@ -249,34 +286,38 @@ public class Node {
                     Integer newPreviousNode = null;
                     ServerSocket serverSocket = new ServerSocket(COMMUNICATIONS_PORT);
                     sendBootstrapBroadcast();
-                    NameServerInterface nameServerInterface = (NameServerInterface) Naming.lookup(nameServerName);//na testen te verwijderen
                     while (true) {
-                        Socket clientSocket = serverSocket.accept();System.out.println("Received TCP command from "+clientSocket.getInetAddress().getHostAddress());
+                        Socket clientSocket = serverSocket.accept();
                         DataInputStream dataInputStream = new DataInputStream(clientSocket.getInputStream());
-                        String buf = dataInputStream.readUTF();
-                        //System.out.println("Full command: "+buf);
-                        String[] splitted = buf.split("\\s");
-                        //System.out.println("Received TCP command from "+clientSocket.getInetAddress().getHostAddress()+": "+splitted[0]);
+                        while(true) {
+                            String buf;
+                            try {
+                            buf = dataInputStream.readUTF();}
+                            catch (IOException e) {
+                                break; //When the socket closes an IO exception get's thrown. Break the loop and wait
+                                        //for the next command...
+                            }
+                            String[] splitted = buf.split("\\s");
                             switch (splitted[0]) {
                                 case "size":
                                     size = Integer.parseInt(splitted[1]);
-                                    System.out.println("size= " + size);
-                                    if(size == 1) {
-                                        System.out.println("I'm the first node. I'm also the previous and next node");
+                                    System.out.println("Found Nameserver on IP " + clientSocket.getInetAddress().getHostAddress());
+                                    if (size == 1) {
+                                        System.out.println("I'm the first node. I'm also the previous and next node. ");
                                         previousNode = myHash;
                                         nextNode = myHash;
+                                    } else {
+                                        System.out.printf("I'm not the first node (size is %i). Waiting for my next and previous node...", size);
                                     }
                                     break;
                                 case "prev":
                                     newPreviousNode = Integer.parseInt(splitted[1]);
-                                    System.out.println("prev= " + new Socket(nameServerInterface.getAddress(newPreviousNode), COMMUNICATIONS_PORT));//na testen te verwijderen
                                     previousNode = newPreviousNode;
-                                    System.out.println("My previous node was updated by "+clientSocket.getInetAddress().getHostAddress()+" to "+previousNode);
+                                    System.out.println("My previous node was updated by " + clientSocket.getInetAddress().getHostAddress() + " to " + previousNode);
                                     break;
                                 case "next":
                                     newNextNode = Integer.parseInt(splitted[1]);
-                                    System.out.println("next= " + new Socket(nameServerInterface.getAddress(newNextNode), COMMUNICATIONS_PORT));//na testen te verwijderen
-                                    System.out.println("My next node was updated by "+clientSocket.getInetAddress().getHostAddress()+" to "+nextNode);
+                                    System.out.println("My next node was updated by " + clientSocket.getInetAddress().getHostAddress() + " to " + nextNode);
                                     break;
                                 case "duplicate":
                                     System.out.println("Deze naam bestaat al in het domein.");
@@ -286,6 +327,7 @@ public class Node {
                                     sendBootstrapBroadcast();
                                     break;
                             }
+                        }
 
                         /*if (size != null && newNextNode != null && newPreviousNode != null) {
                             if (size < 1) {
@@ -298,8 +340,6 @@ public class Node {
                         }*/
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (NotBoundException e) {//na testen te verwijderen
                     e.printStackTrace();
                 }
             }

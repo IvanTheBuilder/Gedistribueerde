@@ -75,7 +75,10 @@ public class NameServer implements NameServerInterface {
      */
     public boolean removeNode(int nodeName) {
         boolean temp = nodeMap.remove(nodeName) != null;
+        if(temp) {
+        System.out.printf("Node with hash %d left. New sitation: %s", nodeName, nodeMap.toString());
         saveToDisk();
+        }
         return temp;
     }
 
@@ -111,7 +114,6 @@ public class NameServer implements NameServerInterface {
 
     public void saveToDisk() {
         try {
-            System.out.println(nodeMap);    //enkel om te testen
             JAXBContext context = JAXBContext.newInstance(NameServer.class);
             Marshaller marshaller = context.createMarshaller();
             marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
@@ -125,10 +127,8 @@ public class NameServer implements NameServerInterface {
      * Start de multicast listener op. Ontvang multicasts van andere nodes en worden hier behandeld
      */
     public void startMulticastListener() {
-        System.out.println("Start multicastlistener called!");
         new Thread(new Runnable() {
             public void run() {
-                System.out.println("Started multicast Listener");
                 try {
                     MulticastSocket multicastSocket = new MulticastSocket(MULTICAST_PORT);
                     multicastSocket.joinGroup(InetAddress.getByName(GROUP));
@@ -145,14 +145,13 @@ public class NameServer implements NameServerInterface {
                         DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
                         if (addNode(name, address)) {
                             dataOutputStream.writeUTF("size " + nodeMap.size());
-                            System.out.println("Successfully added node to map.");
+                            System.out.printf("Node %s from %s requested to join and was accepted.\nNew sitation: %s", name, address, nodeMap.toString());
                         }
                         else {
-                            dataOutputStream.writeUTF("duplicate test");
-                            System.out.println("Duplicate in map.");
+                            dataOutputStream.writeUTF("duplicate");
+                            System.out.printf("Node %s from %s requested to join but was rejected due to duplicate.", name, address);
                         }
                         dataOutputStream.close();
-                        System.out.println("Closed datastream");
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
