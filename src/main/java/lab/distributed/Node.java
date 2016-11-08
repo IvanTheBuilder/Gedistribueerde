@@ -232,10 +232,12 @@ public class Node {
      * next param1 = next id param1
      */
     private void startTCPServerSocket(){
+        new Thread(new Runnable() {
+            public void run() {
         try {
             Integer size = null;
-            Integer nextNode = null;
-            Integer previousNode = null;
+            Integer newNextNode = null;
+            Integer newPreviousNode = null;
             ServerSocket serverSocket = new ServerSocket(COMMUNICATIONS_PORT);
             sendBootstrapBroadcast();
             NameServerInterface nameServerInterface = (NameServerInterface) Naming.lookup(nameServerName);//na testen te verwijderen
@@ -261,11 +263,11 @@ public class Node {
                             break;
                         case "prev":
                             previousNode = Integer.parseInt(splitted[i + 1]);
-                            System.out.println("prev= "+ new Socket(nameServerInterface.getAddress(previousNode), COMMUNICATIONS_PORT));//na testen te verwijderen
+                            System.out.println("prev= "+ new Socket(nameServerInterface.getAddress(newPreviousNode), COMMUNICATIONS_PORT));//na testen te verwijderen
                             break;
                         case "next":
                             nextNode = Integer.parseInt(splitted[i + 1]);
-                            System.out.println("next= "+ new Socket(nameServerInterface.getAddress(nextNode), COMMUNICATIONS_PORT));//na testen te verwijderen
+                            System.out.println("next= "+ new Socket(nameServerInterface.getAddress(newNextNode), COMMUNICATIONS_PORT));//na testen te verwijderen
                             break;
                         case "duplicate":
                             System.out.println("Deze naam besdtaat al in het domein.");
@@ -276,13 +278,13 @@ public class Node {
                             break;
                     }
                 }
-                if (size != null && nextNode != null && previousNode != null) {
+                if (size != null && newNextNode != null && newPreviousNode != null) {
                     if (size < 1) {
-                        this.previousNode = myHash;
-                        this.nextNode = myHash;
+                        previousNode = myHash;
+                        nextNode = myHash;
                     } else {
-                        this.nextNode = nextNode;
-                        this.previousNode = previousNode;
+                        nextNode = newNextNode;
+                        previousNode = newPreviousNode;
                     }
                 }
             }
@@ -291,7 +293,8 @@ public class Node {
         } catch (NotBoundException e) {//na testen te verwijderen
             e.printStackTrace();
         }
-    }
+            }
+        }).start();}
 
     /**
      * hash genereren van een bepaalde naam
