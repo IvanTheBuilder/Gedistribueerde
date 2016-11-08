@@ -146,7 +146,6 @@ public class Node {
                                 DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
                                 dataOutputStream.writeUTF("prev " + myHash);
                                 dataOutputStream.writeUTF("next " + nextNode);
-
                                 dataOutputStream.close();
                             }
                             /**
@@ -255,21 +254,29 @@ public class Node {
                         Socket clientSocket = serverSocket.accept();System.out.println("Received TCP command from "+clientSocket.getInetAddress().getHostAddress());
                         DataInputStream dataInputStream = new DataInputStream(clientSocket.getInputStream());
                         String buf = dataInputStream.readUTF();
-                        System.out.println("Full command: "+buf);
+                        //System.out.println("Full command: "+buf);
                         String[] splitted = buf.split("\\s");
-                        System.out.println("Received TCP command from "+clientSocket.getInetAddress().getHostAddress()+": "+splitted[0]);
+                        //System.out.println("Received TCP command from "+clientSocket.getInetAddress().getHostAddress()+": "+splitted[0]);
                             switch (splitted[0]) {
                                 case "size":
                                     size = Integer.parseInt(splitted[1]);
                                     System.out.println("size= " + size);
+                                    if(size == 1) {
+                                        System.out.println("I'm the first node. I'm also the previous and next node");
+                                        previousNode = myHash;
+                                        nextNode = myHash;
+                                    }
                                     break;
                                 case "prev":
                                     newPreviousNode = Integer.parseInt(splitted[1]);
                                     System.out.println("prev= " + new Socket(nameServerInterface.getAddress(newPreviousNode), COMMUNICATIONS_PORT));//na testen te verwijderen
+                                    previousNode = newPreviousNode;
+                                    System.out.println("My previous node was updated by "+clientSocket.getInetAddress().getHostAddress()+" to "+previousNode);
                                     break;
                                 case "next":
                                     newNextNode = Integer.parseInt(splitted[1]);
                                     System.out.println("next= " + new Socket(nameServerInterface.getAddress(newNextNode), COMMUNICATIONS_PORT));//na testen te verwijderen
+                                    System.out.println("My next node was updated by "+clientSocket.getInetAddress().getHostAddress()+" to "+nextNode);
                                     break;
                                 case "duplicate":
                                     System.out.println("Deze naam bestaat al in het domein.");
@@ -280,7 +287,7 @@ public class Node {
                                     break;
                             }
 
-                        if (size != null && newNextNode != null && newPreviousNode != null) {
+                        /*if (size != null && newNextNode != null && newPreviousNode != null) {
                             if (size < 1) {
                                 previousNode = myHash;
                                 nextNode = myHash;
@@ -288,7 +295,7 @@ public class Node {
                                 nextNode = newNextNode;
                                 previousNode = newPreviousNode;
                             }
-                        }
+                        }*/
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
