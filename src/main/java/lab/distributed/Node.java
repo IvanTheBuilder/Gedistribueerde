@@ -270,11 +270,11 @@ public class Node {
                                     System.out.println("size= " + size);
                                     break;
                                 case "prev":
-                                    previousNode = Integer.parseInt(splitted[i + 1]);
+                                    newPreviousNode = Integer.parseInt(splitted[i + 1]);
                                     System.out.println("prev= " + new Socket(nameServerInterface.getAddress(newPreviousNode), COMMUNICATIONS_PORT));//na testen te verwijderen
                                     break;
                                 case "next":
-                                    nextNode = Integer.parseInt(splitted[i + 1]);
+                                    newNextNode = Integer.parseInt(splitted[i + 1]);
                                     System.out.println("next= " + new Socket(nameServerInterface.getAddress(newNextNode), COMMUNICATIONS_PORT));//na testen te verwijderen
                                     break;
                                 case "duplicate":
