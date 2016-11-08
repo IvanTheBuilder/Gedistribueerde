@@ -265,18 +265,17 @@ public class Node {
                         }
                         String[] splitted = buf.split("\\s");
                         System.out.println("Received TCP command from "+clientSocket.getInetAddress().getHostAddress()+": "+splitted[0]);
-                        for (int i = 0; i < splitted.length / 2; i++) {
-                            switch (splitted[i]) {
+                            switch (splitted[0]) {
                                 case "size":
-                                    size = Integer.parseInt(splitted[i + 1]);
+                                    size = Integer.parseInt(splitted[1]);
                                     System.out.println("size= " + size);
                                     break;
                                 case "prev":
-                                    newPreviousNode = Integer.parseInt(splitted[i + 1]);
+                                    newPreviousNode = Integer.parseInt(splitted[1]);
                                     System.out.println("prev= " + new Socket(nameServerInterface.getAddress(newPreviousNode), COMMUNICATIONS_PORT));//na testen te verwijderen
                                     break;
                                 case "next":
-                                    newNextNode = Integer.parseInt(splitted[i + 1]);
+                                    newNextNode = Integer.parseInt(splitted[1]);
                                     System.out.println("next= " + new Socket(nameServerInterface.getAddress(newNextNode), COMMUNICATIONS_PORT));//na testen te verwijderen
                                     break;
                                 case "duplicate":
@@ -287,7 +286,7 @@ public class Node {
                                     sendBootstrapBroadcast();
                                     break;
                             }
-                        }
+
                         if (size != null && newNextNode != null && newPreviousNode != null) {
                             if (size < 1) {
                                 previousNode = myHash;
