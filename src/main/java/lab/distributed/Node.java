@@ -24,8 +24,8 @@ public class Node {
     private int myHash;
     private String location;
     private String nameServerName = "//192.168.1.1/NameServerInterface";
-    private int previousNode;
-    private int nextNode;
+    private int previousNode = -1;
+    private int nextNode = -1;
 
     /**
      * De constructor gaat een nieuwe node aanmaken in de nameserver met de gekozen naam en het ip adres van de machine waarop hij gestart wordt.
@@ -306,6 +306,7 @@ public class Node {
                                 case "size":
                                     size = Integer.parseInt(splitted[1]);
                                     System.out.println("Found Nameserver on IP " + clientSocket.getInetAddress().getHostAddress());
+                                    nameServerName = "//"+clientSocket.getInetAddress().getHostAddress()+"/NameServerInterface";
                                     if (size == 1) {
                                         System.out.println("I'm the first node. I'm also the previous and next node. ");
                                         previousNode = myHash;
@@ -397,6 +398,10 @@ public class Node {
             e.printStackTrace();
         }
     }
+
+
+
+
 
 
 }
