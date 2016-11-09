@@ -22,7 +22,7 @@ public class Node {
     private String name;
     private int myHash;
     private String location;
-    private String nameServerName = "//192.168.1.143/NameServerInterface";
+    private String nameServerName = "//192.168.1.1/NameServerInterface";
     private int previousNode;
     private int nextNode;
 
@@ -307,7 +307,7 @@ public class Node {
                                         previousNode = myHash;
                                         nextNode = myHash;
                                     } else {
-                                        System.out.printf("I'm not the first node (size is %i). Waiting for my next and previous node...", size);
+                                        System.out.printf("I'm not the first node (size is %d). Waiting for my next and previous node...", size);
                                     }
                                     break;
                                 case "prev":
@@ -317,6 +317,7 @@ public class Node {
                                     break;
                                 case "next":
                                     newNextNode = Integer.parseInt(splitted[1]);
+                                    nextNode = newNextNode;
                                     System.out.println("My next node was updated by " + clientSocket.getInetAddress().getHostAddress() + " to " + nextNode);
                                     break;
                                 case "duplicate":
