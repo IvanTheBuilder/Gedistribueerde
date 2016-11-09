@@ -85,7 +85,7 @@ public class Node {
         try {
             NameServerInterface nameServerInterface = (NameServerInterface) Naming.lookup(nameServerName);
             if (!nameServerInterface.removeNode(hash))
-                System.out.println("deze node bestaat niet");
+                System.out.println("Deze node bestaat niet");
         } catch (NotBoundException | MalformedURLException | RemoteException e) {
             e.printStackTrace();
         }
@@ -177,7 +177,7 @@ public class Node {
                             dataOutputStream.writeUTF("prev " + myHash);
                             dataOutputStream.writeUTF("next " + nextNode);
                             dataOutputStream.close();
-                            System.out.printf("A node (%d) joined between me (%d) and my next neighbour (%d). Updating accordingly...\nWelcome %s!",hash, myHash, nextNode, name);
+                            System.out.printf("A node (%d) joined between me (%d) and my next neighbour (%d). Updating accordingly...\nWelcome %s!\n",hash, myHash, nextNode, name);
                             nextNode = hash;
                         }
                         else if ((previousNode < hash && hash < myHash)
@@ -187,11 +187,11 @@ public class Node {
                              * over zijn nieuwe buren informeren. Ik pas enkel mijn vorige node aan.
                              */
                             System.out.printf("A node (%d) joined between my previous neighbour (%d) and me. Updating accordingly...\n" +
-                                    "Welcome %s!",hash, previousNode, myHash, name);
+                                    "Welcome %s!\n",hash, previousNode, myHash, name);
                             previousNode = hash;
                         } else {
                             System.out.printf("A node (%d) joined but isn't between my previous or next neighbour.\n" +
-                                    "Welcome %s!",hash, name);
+                                    "Welcome %s!\n",hash, name);
                         }
                     }
                 } catch (UnknownHostException e) {
@@ -214,7 +214,7 @@ public class Node {
         try {
             datagramSocket = new DatagramSocket(MULTICAST_PORT, InetAddress.getLocalHost());
             datagramSocket.send(new DatagramPacket(message, message.length, InetAddress.getByName(GROUP), MULTICAST_PORT));
-            System.out.println("multicast sent from " + name);
+            System.out.println("Multicast sent from " + name);
             datagramSocket.close();
         } catch (SocketException e) {
             e.printStackTrace();
@@ -309,7 +309,7 @@ public class Node {
                                         previousNode = myHash;
                                         nextNode = myHash;
                                     } else {
-                                        System.out.printf("I'm not the first node (size is %d). Waiting for my next and previous node...", size);
+                                        System.out.printf("I'm not the first node (size is %d). Waiting for my next and previous node...\n", size);
                                     }
                                     break;
                                 case "prev":
