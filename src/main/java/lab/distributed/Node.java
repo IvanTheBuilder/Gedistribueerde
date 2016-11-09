@@ -131,10 +131,9 @@ public class Node {
                 try {
                     MulticastSocket multicastSocket = new MulticastSocket(MULTICAST_PORT);
                     multicastSocket.joinGroup(InetAddress.getByName(GROUP));
-                    byte[] buf = new byte[256];
-                    DatagramPacket datagramPacket = new DatagramPacket(buf, buf.length);
                     while (true) {
-                        buf = new byte[256];
+                        byte[] buf = new byte[256];
+                        DatagramPacket datagramPacket = new DatagramPacket(buf, buf.length);
                         multicastSocket.receive(datagramPacket);
                         byte[] byteAddress = Arrays.copyOfRange(buf, 0, 4);
                         String address = InetAddress.getByAddress(byteAddress).getHostAddress();
