@@ -188,7 +188,9 @@ public class Node {
                             System.out.printf("A node (%d) joined between my previous neighbour (%d) and me. Updating accordingly...\n" +
                                     "Welcome %s!\n",hash, previousNode, name);
                             previousNode = hash;
-                        } else {
+                        } else if (hash == myHash){
+                            System.out.printf("I joined the network.\n");
+                        }else{
                             System.out.printf("A node (%d) joined but isn't between my previous or next neighbour.\n" +
                                     "Welcome %s!\n",hash, name);
                         }
