@@ -213,6 +213,7 @@ public class Node {
         try {
             datagramSocket = new DatagramSocket(MULTICAST_PORT, InetAddress.getLocalHost());
             datagramSocket.send(new DatagramPacket(message, message.length, InetAddress.getByName(GROUP), MULTICAST_PORT));
+            System.out.println("multicast sent from " + name);
             datagramSocket.close();
         } catch (SocketException e) {
             e.printStackTrace();
