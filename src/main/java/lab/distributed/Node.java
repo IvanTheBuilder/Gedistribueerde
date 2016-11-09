@@ -403,5 +403,8 @@ public class Node {
 
 
 
+    public String getName() {
+        return name;
+    }
 
 }

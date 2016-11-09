@@ -11,6 +11,7 @@ public class TestNode1 {
         //elke keer dat de next en previous node wordt geupdated wordt dit naar de terminal geprint
         //om failure te testen: na een tijdje een netwerkkabel uittrekken en kijken of de andere nodes geupdated worden.
         System.out.println("node is opgestart");
+        node.receivePing();
         Scanner scanner = new Scanner(System.in);
         scanner.nextLine();// wachten op invoer van de gebruiker
         /*try {
