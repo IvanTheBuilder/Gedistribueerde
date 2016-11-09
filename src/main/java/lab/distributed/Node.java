@@ -19,6 +19,7 @@ public class Node {
     public static final String GROUP = "225.1.2.3";
     public static final int MULTICAST_PORT = 12345;
     public static final int COMMUNICATIONS_PORT = 4000;
+    public static final int PING_PORT = 9000;
     private String name;
     private int myHash;
     private String location;
@@ -348,6 +349,47 @@ public class Node {
                 }
             }
         }).start();
+    }
+
+    public void sendPing(){
+
+        try {
+            NameServerInterface nameServerInterface = (NameServerInterface) Naming.lookup(nameServerName);
+            Socket socket = new Socket(nameServerInterface.getAddress(nextNode), PING_PORT);
+            DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
+            DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
+            while(true){
+                dataOutputStream.writeUTF("ping");
+                String pong = dataInputStream.readUTF();
+                if(pong.equals("pong")){
+                    dataOutputStream.writeUTF("ping");
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            failure(nextNode);
+        } catch (NotBoundException e) {
+            e.printStackTrace();
+        }
+
+
+    }
+
+    public void receivePing(){
+        try {
+            ServerSocket serverSocket = new ServerSocket(PING_PORT);
+            Socket clientSocket = serverSocket.accept();
+            DataInputStream dataInputStream = new DataInputStream(clientSocket.getInputStream());
+            DataOutputStream dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
+            while(true) {
+                String ping = dataInputStream.readUTF();
+                if (ping.equals("ping")) {
+                    dataOutputStream.writeUTF("pong");
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 
