@@ -351,6 +351,9 @@ public class Node {
         }).start();
     }
 
+    /**
+     * dit is slechts een testmethode om de failure methode op te roepen.
+     */
     public void sendPing(){
 
         try {
@@ -375,6 +378,9 @@ public class Node {
 
     }
 
+    /**
+     * Testmethode om bij sendping methode te gaan, persoon die zal ontvangen moet eerst receiveping starten, persoon die zal senden moet dan sendping starten, kabel uittrekken van persoon die receiveping draait.
+     */
     public void receivePing(){
         try {
             ServerSocket serverSocket = new ServerSocket(PING_PORT);
