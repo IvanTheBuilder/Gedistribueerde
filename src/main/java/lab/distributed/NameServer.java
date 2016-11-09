@@ -76,7 +76,7 @@ public class NameServer implements NameServerInterface {
     public boolean removeNode(int nodeName) {
         boolean temp = nodeMap.remove(nodeName) != null;
         if(temp) {
-        System.out.printf("Node with hash %d left. New sitation: %s", nodeName, nodeMap.toString());
+        System.out.printf("Node with hash %d left. New sitation: %s\n", nodeName, nodeMap.toString());
         saveToDisk();
         }
         return temp;
@@ -145,11 +145,11 @@ public class NameServer implements NameServerInterface {
                         DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
                         if (addNode(name, address)) {
                             dataOutputStream.writeUTF("size " + nodeMap.size());
-                            System.out.printf("Node %s from %s requested to join and was accepted.\nNew sitation: %s", name, address, nodeMap.toString());
+                            System.out.printf("Node %s from %s requested to join and was accepted.\nNew sitation: %s\n", name, address, nodeMap.toString());
                         }
                         else {
                             dataOutputStream.writeUTF("duplicate");
-                            System.out.printf("Node %s from %s requested to join but was rejected due to duplicate.", name, address);
+                            System.out.printf("Node %s from %s requested to join but was rejected due to duplicate\n", name, address);
                         }
                         dataOutputStream.close();
                     }

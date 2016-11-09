@@ -186,7 +186,7 @@ public class Node {
                              * over zijn nieuwe buren informeren. Ik pas enkel mijn vorige node aan.
                              */
                             System.out.printf("A node (%d) joined between my previous neighbour (%d) and me. Updating accordingly...\n" +
-                                    "Welcome %s!\n",hash, previousNode, myHash, name);
+                                    "Welcome %s!\n",hash, previousNode, name);
                             previousNode = hash;
                         } else {
                             System.out.printf("A node (%d) joined but isn't between my previous or next neighbour.\n" +
