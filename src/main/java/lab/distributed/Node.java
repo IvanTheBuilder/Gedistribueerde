@@ -1,8 +1,6 @@
 package lab.distributed;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.*;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
@@ -18,6 +16,7 @@ public class Node {
      */
     public static final String GROUP = "225.1.2.3";
     public static final int MULTICAST_PORT = 12345;
+    public static final int FILESERVER_PORT = 4001;
     public static final int COMMUNICATIONS_PORT = 4000;
     public static final int PING_PORT = 9000;
     private String name;
@@ -26,6 +25,9 @@ public class Node {
     private String nameServerName = "//192.168.1.1/NameServerInterface";
     private int previousNode = -1;
     private int nextNode = -1;
+    private FileServer fileServer;
+
+
 
     /**
      * De constructor gaat een nieuwe node aanmaken in de nameserver met de gekozen naam en het ip adres van de machine waarop hij gestart wordt.
@@ -48,7 +50,7 @@ public class Node {
             e.printStackTrace();
         }
         startTCPServerSocket();
-
+        fileServer = new FileServer(FILESERVER_PORT);
     }
 
     /**
@@ -398,6 +400,104 @@ public class Node {
             e.printStackTrace();
         }
     }
+
+    /**
+     * Vraag een bestand op naar een andere node. De bestanden worden gezocht in de subfolder ./files en zullen op de
+     * eigen node ook in deze map geplaatst worden.
+     * @param node De hash van de node
+     * @param filename Naam van het bestand
+     * @return Of het bestand gevonden was of niet, of dat de node niet bestaat.
+     */
+    public boolean requestFile(int node, String filename) {
+        try {
+            NameServerInterface nameServerInterface = (NameServerInterface) Naming.lookup(nameServerName);
+            return requestFile(nameServerInterface.getAddress(node), filename);
+        } catch (NotBoundException e) {
+            e.printStackTrace();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * Verstuur een bestand naar een andere node. De bestanden worden gezocht in de subfolder ./files en zullen op de
+     * destination ook in deze map geplaatst worden.
+     * @param node Hash van de node
+     * @param filename Bestandsnaam
+     * @return Of dat de server het bestand successvol heeft ontvangen
+     */
+    public boolean sendFile(int node, String filename) {
+        try {
+            NameServerInterface nameServerInterface = (NameServerInterface) Naming.lookup(nameServerName);
+            return sendFile(nameServerInterface.getAddress(node), filename);
+        } catch (NotBoundException e) {
+            e.printStackTrace();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * Vraag een bestand op van een IP address. Kijk naar requestFile(int, String voor meer uitleg)
+     * @param address
+     * @param filename
+     * @return
+     */
+    public boolean requestFile(String address, String filename) {
+        try {
+            Socket socket = new Socket(address, FILESERVER_PORT);
+            DataInputStream dataInputStream = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
+            DataOutputStream dataOutputStream = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+            dataOutputStream.writeUTF("send");
+            dataOutputStream.writeUTF(filename);
+            FileOutputStream fileOutputStream = new FileOutputStream("./files/"+filename);
+            byte[] bytes = new byte[8192];
+            int count;
+            while ((count = dataInputStream.read(bytes)) > 0) {
+                fileOutputStream.write(bytes, 0, count);
+            }
+            dataOutputStream.close();
+            dataInputStream.close();
+            socket.close();
+            return true;
+
+        } catch (IOException e) {
+            return false;
+            //e.printStackTrace();
+        }
+    }
+
+    public boolean sendFile(String address, String filename) {
+        try {
+            Socket socket = new Socket(address, FILESERVER_PORT);
+            DataInputStream dataInputStream = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
+            DataOutputStream dataOutputStream = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+            dataOutputStream.writeUTF("receive");
+            dataOutputStream.writeUTF(filename);
+            FileInputStream fileInputStream = new FileInputStream("./files/"+filename);
+            byte[] bytes = new byte[8192];
+            int count;
+            while ((count = fileInputStream.read(bytes)) > 0) {
+                dataOutputStream.write(bytes, 0, count);
+            }
+            dataOutputStream.close();
+            dataInputStream.close();
+            socket.close();
+            return true;
+
+        } catch (IOException e) {
+            return false;
+            //e.printStackTrace();
+        }
+    }
+
+
 
 
 
