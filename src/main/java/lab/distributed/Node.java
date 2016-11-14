@@ -28,7 +28,6 @@ public class Node {
     private FileServer fileServer;
 
 
-
     /**
      * De constructor gaat een nieuwe node aanmaken in de nameserver met de gekozen naam en het ip adres van de machine waarop hij gestart wordt.
      *
@@ -45,7 +44,7 @@ public class Node {
 
         startMulticastListener();
         try {
-            Thread.sleep(500); // Start TCP socket a second after multicast listener to prevent deadlock.
+            Thread.sleep(500); // Start TCP socket half a second after multicast listener to prevent deadlock.
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -92,7 +91,6 @@ public class Node {
         } catch (NotBoundException | MalformedURLException | RemoteException e) {
             e.printStackTrace();
         }
-
 
 
     }
@@ -148,7 +146,7 @@ public class Node {
                          * de nieuwe node, en zet die van de nieuwe node naar ons.
                          * https://gyazo.com/f0a9b650813f46d1b98ac63bb6b396fb
                          */
-                        if(previousNode == myHash && nextNode == myHash) {
+                        if (previousNode == myHash && nextNode == myHash) {
                             previousNode = hash;
                             nextNode = hash;
                             Socket socket = new Socket(address, COMMUNICATIONS_PORT);
@@ -161,8 +159,7 @@ public class Node {
                         /**
                          * Hierna gaan we na of de node tussen ons en één van onze buren ligt
                          */
-                        else if((myHash < hash && hash < nextNode)
-                                || (nextNode < myHash && (hash > myHash || hash < nextNode))) {
+                        else if ((myHash < hash && hash < nextNode) || (nextNode < myHash && (hash > myHash || hash < nextNode))) {
                             /**
                              * SITUATIE 1: (eerste deel van if-case)
                              * De node ligt tussen mij en mijn volgende buur. De nieuwe node is mijn volgende en ik ben
@@ -179,23 +176,20 @@ public class Node {
                             dataOutputStream.writeUTF("prev " + myHash);
                             dataOutputStream.writeUTF("next " + nextNode);
                             dataOutputStream.close();
-                            System.out.printf("A node (%d) joined between me (%d) and my next neighbour (%d). Updating accordingly...\nWelcome %s!\n",hash, myHash, nextNode, name);
+                            System.out.printf("A node (%d) joined between me (%d) and my next neighbour (%d). Updating accordingly...\nWelcome %s!\n", hash, myHash, nextNode, name);
                             nextNode = hash;
-                        }
-                        else if ((previousNode < hash && hash < myHash)
-                                || (previousNode > myHash && (hash < myHash || hash > nextNode))) {
+                        } else if ((previousNode < hash && hash < myHash) || (previousNode > myHash && (hash < myHash || hash > nextNode))) {
                             /**
                              * De node ligt tussen mijn vorige buur en mij. Mijn vorige buur zal de nieuwe node
                              * over zijn nieuwe buren informeren. Ik pas enkel mijn vorige node aan.
                              */
-                            System.out.printf("A node (%d) joined between my previous neighbour (%d) and me. Updating accordingly...\n" +
-                                    "Welcome %s!\n",hash, previousNode, name);
+                            System.out.printf("A node (%d) joined between my previous neighbour (%d) and me. Updating accordingly...\nWelcome %s!\n", hash, previousNode, name);
                             previousNode = hash;
-                        } else if (hash == myHash){
+                        } else if (hash == myHash) {
                             System.out.printf("I joined the network.\n");
-                        }else{
+                        } else {
                             System.out.printf("A node (%d) joined but isn't between my previous or next neighbour.\n" +
-                                    "Welcome %s!\n",hash, name);
+                                    "Welcome %s!\n", hash, name);
                         }
                     }
                 } catch (UnknownHostException e) {
@@ -295,20 +289,20 @@ public class Node {
                     while (true) {
                         Socket clientSocket = serverSocket.accept();
                         DataInputStream dataInputStream = new DataInputStream(clientSocket.getInputStream());
-                        while(true) {
+                        while (true) {
                             String buf;
                             try {
-                            buf = dataInputStream.readUTF();}
-                            catch (IOException e) {
+                                buf = dataInputStream.readUTF();
+                            } catch (IOException e) {
                                 break; //When the socket closes an IO exception get's thrown. Break the loop and wait
-                                        //for the next command...
+                                //for the next command...
                             }
                             String[] splitted = buf.split("\\s");
                             switch (splitted[0]) {
                                 case "size":
                                     size = Integer.parseInt(splitted[1]);
                                     System.out.println("Found Nameserver on IP " + clientSocket.getInetAddress().getHostAddress());
-                                    nameServerName = "//"+clientSocket.getInetAddress().getHostAddress()+"/NameServerInterface";
+                                    nameServerName = "//" + clientSocket.getInetAddress().getHostAddress() + "/NameServerInterface";
                                     if (size == 1) {
                                         System.out.println("I'm the first node. I'm also the previous and next node. ");
                                         previousNode = myHash;
@@ -357,17 +351,17 @@ public class Node {
     /**
      * dit is slechts een testmethode om de failure methode op te roepen.
      */
-    public void sendPing(){
+    public void sendPing() {
 
         try {
             NameServerInterface nameServerInterface = (NameServerInterface) Naming.lookup(nameServerName);
             Socket socket = new Socket(nameServerInterface.getAddress(nextNode), PING_PORT);
             DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
             DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
-            while(true){
+            while (true) {
                 dataOutputStream.writeUTF("ping");
                 String pong = dataInputStream.readUTF();
-                if(pong.equals("pong")){
+                if (pong.equals("pong")) {
                     dataOutputStream.writeUTF("ping");
                 }
             }
@@ -384,13 +378,13 @@ public class Node {
     /**
      * Testmethode om bij sendping methode te gaan, persoon die zal ontvangen moet eerst receiveping starten, persoon die zal senden moet dan sendping starten, kabel uittrekken van persoon die receiveping draait.
      */
-    public void receivePing(){
+    public void receivePing() {
         try {
             ServerSocket serverSocket = new ServerSocket(PING_PORT);
             Socket clientSocket = serverSocket.accept();
             DataInputStream dataInputStream = new DataInputStream(clientSocket.getInputStream());
             DataOutputStream dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
-            while(true) {
+            while (true) {
                 String ping = dataInputStream.readUTF();
                 if (ping.equals("ping")) {
                     dataOutputStream.writeUTF("pong");
@@ -404,7 +398,8 @@ public class Node {
     /**
      * Vraag een bestand op naar een andere node. De bestanden worden gezocht in de subfolder ./files en zullen op de
      * eigen node ook in deze map geplaatst worden.
-     * @param node De hash van de node
+     *
+     * @param node     De hash van de node
      * @param filename Naam van het bestand
      * @return Of het bestand gevonden was of niet, of dat de node niet bestaat.
      */
@@ -425,7 +420,8 @@ public class Node {
     /**
      * Verstuur een bestand naar een andere node. De bestanden worden gezocht in de subfolder ./files en zullen op de
      * destination ook in deze map geplaatst worden.
-     * @param node Hash van de node
+     *
+     * @param node     Hash van de node
      * @param filename Bestandsnaam
      * @return Of dat de server het bestand successvol heeft ontvangen
      */
@@ -445,6 +441,7 @@ public class Node {
 
     /**
      * Vraag een bestand op van een IP address. Kijk naar requestFile(int, String voor meer uitleg)
+     *
      * @param address
      * @param filename
      * @return
@@ -456,7 +453,7 @@ public class Node {
             DataOutputStream dataOutputStream = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
             dataOutputStream.writeUTF("send");
             dataOutputStream.writeUTF(filename);
-            FileOutputStream fileOutputStream = new FileOutputStream("./files/"+filename);
+            FileOutputStream fileOutputStream = new FileOutputStream("./files/" + filename);
             byte[] bytes = new byte[8192];
             int count;
             while ((count = dataInputStream.read(bytes)) > 0) {
@@ -480,7 +477,7 @@ public class Node {
             DataOutputStream dataOutputStream = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
             dataOutputStream.writeUTF("receive");
             dataOutputStream.writeUTF(filename);
-            FileInputStream fileInputStream = new FileInputStream("./files/"+filename);
+            FileInputStream fileInputStream = new FileInputStream("./files/" + filename);
             byte[] bytes = new byte[8192];
             int count;
             while ((count = fileInputStream.read(bytes)) > 0) {
@@ -496,12 +493,6 @@ public class Node {
             //e.printStackTrace();
         }
     }
-
-
-
-
-
-
 
     public String getName() {
         return name;

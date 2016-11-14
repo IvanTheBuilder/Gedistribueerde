@@ -7,11 +7,11 @@ import java.util.Scanner;
  */
 public class TestNode1 {
     public static void main(String[] args) {
-        Node node = new Node("Ivan");
+        Node node = new Node("Robbe");
         //elke keer dat de next en previous node wordt geupdated wordt dit naar de terminal geprint
         //om failure te testen: na een tijdje een netwerkkabel uittrekken en kijken of de andere nodes geupdated worden.
-        System.out.println("node is opgestart");
-        node.receivePing();
+        System.out.println("Node is opgestart");
+        node.sendPing();
         Scanner scanner = new Scanner(System.in);
         scanner.nextLine();// wachten op invoer van de gebruiker
         /*try {
