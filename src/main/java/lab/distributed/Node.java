@@ -188,8 +188,7 @@ public class Node {
                         } else if (hash == myHash) {
                             System.out.printf("I joined the network.\n");
                         } else {
-                            System.out.printf("A node (%d) joined but isn't between my previous or next neighbour.\n" +
-                                    "Welcome %s!\n", hash, name);
+                            System.out.printf("A node (%d) joined but isn't between my previous or next neighbour.\nWelcome %s!\n", hash, name);
                         }
                     }
                 } catch (UnknownHostException e) {
@@ -248,17 +247,17 @@ public class Node {
      * Met deze methode wordt de de volgende of vorige node van een bepaalde node aangepast
      *
      * @param target     de node waarin de parameters worden aangepast
-     * @param aanpassing de nieuwe waarde voor de parameter
+     * @param changed de nieuwe waarde voor de parameter
      * @param nextPrev   moet de volgende of de vorige node aangepast worden? kan waarde "next" of "prev" aannemen
      */
-    private void updateNode(int target, int aanpassing, String nextPrev) {
+    private void updateNode(int target, int changed, String nextPrev) {
         Socket socket;
         DataOutputStream dataOutputStream;
         try {
             NameServerInterface nameServerInterface = (NameServerInterface) Naming.lookup(nameServerName);
             socket = new Socket(nameServerInterface.getAddress(target), COMMUNICATIONS_PORT);
             dataOutputStream = new DataOutputStream(socket.getOutputStream());
-            dataOutputStream.writeUTF(nextPrev + " " + aanpassing); //als nextPrev een verkeerde waarde heeft wordt dit opgevangen in de listener
+            dataOutputStream.writeUTF(nextPrev + " " + changed); //als nextPrev een verkeerde waarde heeft wordt dit opgevangen in de listener
             dataOutputStream.close();
         } catch (NotBoundException | MalformedURLException | UnknownHostException | RemoteException e) {
             e.printStackTrace();
