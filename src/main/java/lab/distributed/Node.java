@@ -140,12 +140,19 @@ public class Node implements NodeInterface {
         String name = entry.getFileName();
         if(localFiles.get(name).equals(null)) //als het bestand nog niet lokaal bestaat
         {
-            entry.setOwner(this);
+            if(!entry.getLocalIsOwner())
+                entry.setOwner(this);
             entry.setReplicated(this);
             replicatedFiles.put(name,entry);
-        }else {
+        }else { //bestand bestaat lokaal en wordt gerepliceerd naar de vorige
             entry.setOwner(this);
-            //TODO: replicateNewfile oproepen in vorige node
+            entry.setLocalIsOwner(true);
+            NodeInterface node = getNode(previousNode);
+            try {
+                node.replicateNewFile(entry);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
         //TODO: bestand zelf moet nog verzonden worden via tcp
     }
