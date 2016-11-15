@@ -498,4 +498,8 @@ public class Node {
         return name;
     }
 
+    public void directoryChange(WatchEvent.Kind eventType) {
+
+    }
+
 }
