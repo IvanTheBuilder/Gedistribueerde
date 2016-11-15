@@ -2,14 +2,18 @@ package lab.distributed;
 
 import java.io.*;
 import java.net.*;
+import java.rmi.AlreadyBoundException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.Arrays;
 import java.util.Scanner;
 
 
-public class Node {
+public class Node implements NodeInterface {
 
     /**
      * Multicast Config
@@ -26,6 +30,9 @@ public class Node {
     private int previousNode = -1;
     private int nextNode = -1;
     private FileServer fileServer;
+    private ServerSocket serverSocket;
+    private Thread tcpThread;
+
 
     /**
      * De constructor gaat een nieuwe node aanmaken in de nameserver met de gekozen naam en het ip adres van de machine waarop hij gestart wordt.
@@ -118,6 +125,7 @@ public class Node {
         updateNode(previousNode, nextNode, "next");     //naar de previous node het id van de next node sturen
         updateNode(nextNode, previousNode, "prev");     //naar de next node het id van de previous node sturen
         deleteNode(hashName(name));                     //node verwijderen uit de nameserver
+        tcpThread.interrupt();
         System.exit(0);
     }
 
@@ -222,6 +230,24 @@ public class Node {
 
     }
 
+
+
+    @Override
+    public void setPreviousNode(int hash) {
+        this.previousNode = hash;
+    }
+
+    @Override
+    public void setNextNode(int hash) {
+        this.nextNode = hash;
+    }
+
+    @Override
+    public void printMessage(String message) throws RemoteException {
+        System.out.println(message);
+    }
+
+
     /**
      * de methode die moet aangeroepen worden wanneer de communicatie met een Node mislukt is
      *
@@ -276,13 +302,13 @@ public class Node {
      * next param1 = next id param1
      */
     private void startTCPServerSocket() {
-        new Thread(new Runnable() {
+        tcpThread = new Thread(new Runnable() {
             public void run() {
                 try {
                     Integer size = null;
                     Integer newNextNode = null;
                     Integer newPreviousNode = null;
-                    ServerSocket serverSocket = new ServerSocket(COMMUNICATIONS_PORT);
+                    serverSocket = new ServerSocket(COMMUNICATIONS_PORT);
                     sendBootstrapBroadcast();
                     while (true) {
                         Socket clientSocket = serverSocket.accept();
@@ -343,7 +369,8 @@ public class Node {
                     e.printStackTrace();
                 }
             }
-        }).start();
+        });
+        tcpThread.start();
     }
 
     /**
@@ -495,5 +522,48 @@ public class Node {
     public String getName() {
         return name;
     }
+
+    private void startRMI() {
+        try {
+            NodeInterface nodeInterface = (NodeInterface) UnicastRemoteObject.exportObject(this, 0);
+            Registry registry = LocateRegistry.getRegistry();
+            registry.bind("NodeInterface", nodeInterface);
+            System.out.println("Started RMI. Ready for connections...");
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        } catch (AlreadyBoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private NodeInterface getNode(int hash) {
+        try {
+            NameServerInterface nameServerInterface = (NameServerInterface) Naming.lookup(nameServerName);
+            return getNode(nameServerInterface.getAddress(hash));
+        } catch (NotBoundException e) {
+            e.printStackTrace();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private NodeInterface getNode(String IP) {
+        String name = String.format("//%s/NodeInterface", IP);
+        try {
+            return (NodeInterface) Naming.lookup(name);
+        } catch (NotBoundException e) {
+            e.printStackTrace();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
 
 }
