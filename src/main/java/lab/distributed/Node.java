@@ -12,7 +12,6 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Scanner;
 
 
 public class Node implements NodeInterface {
@@ -28,13 +27,10 @@ public class Node implements NodeInterface {
     private String name;
     private int myHash;
     private String location;
-    private String nameServerName = "//192.168.1.1/NameServerInterface";
     private int previousNode = -1;
     private int nextNode = -1;
     private FileServer fileServer;
     private HashMap<String, FileEntry> localFiles, replicatedFiles;
-    private ServerSocket serverSocket;
-    private Thread tcpThread;
     private NameServerInterface nameServerInterface;
 
     /**
@@ -58,7 +54,6 @@ public class Node implements NodeInterface {
             e.printStackTrace();
         }
         startRMI();
-        startTCPServerSocket();
         try {
             Thread.sleep(500); // Start TCP socket half a second after multicast listener to prevent deadlock.
         } catch (InterruptedException e) {
@@ -132,7 +127,6 @@ public class Node implements NodeInterface {
         updateNode(previousNode, nextNode, "next");     //naar de previous node het id van de next node sturen
         updateNode(nextNode, previousNode, "prev");     //naar de next node het id van de previous node sturen
         deleteNode(hashName(name));                     //node verwijderen uit de nameserver
-        tcpThread.interrupt();
         System.exit(0);
     }
 
@@ -318,76 +312,6 @@ public class Node implements NodeInterface {
         }
     }
 
-    /**
-     * Start de TCPServerSocket, er wordt continu geluisterd voor wanneer
-     * een node offline gaat.
-     * <p>
-     * codewoorden
-     * size param1 = size
-     * prev param1 = previous id param1
-     * next param1 = next id param1
-     */
-    private void startTCPServerSocket() {
-        tcpThread = new Thread(new Runnable() {
-            public void run() {
-                try {
-                    Integer size = null;
-                    Integer newNextNode = null;
-                    Integer newPreviousNode = null;
-                    serverSocket = new ServerSocket(COMMUNICATIONS_PORT);
-                    sendBootstrapBroadcast();
-                    while (true) {
-                        Socket clientSocket = serverSocket.accept();
-                        DataInputStream dataInputStream = new DataInputStream(clientSocket.getInputStream());
-                        while (true) {
-                            String buf;
-                            try {
-                                buf = dataInputStream.readUTF();
-                            } catch (IOException e) {
-                                break; //When the socket closes an IO exception get's thrown. Break the loop and wait
-                                //for the next command...
-                            }
-                            String[] splitted = buf.split("\\s");
-                            switch (splitted[0]) {
-                                case "size":
-                                    size = Integer.parseInt(splitted[1]);
-                                    System.out.println("Found Nameserver on IP " + clientSocket.getInetAddress().getHostAddress());
-                                    connectToNameServer(clientSocket.getInetAddress().getHostAddress());
-                                    if (size == 1) {
-                                        System.out.println("I'm the first node. I'm also the previous and next node. ");
-                                        previousNode = myHash;
-                                        nextNode = myHash;
-                                    } else {
-                                        System.out.printf("I'm not the first node (size is %d). Waiting for my next and previous node...\n", size);
-                                    }
-                                    break;
-                                case "duplicate":
-                                    System.out.println("Deze naam bestaat al in het domein.");
-                                    System.out.println("Geef een nieuwe naam");
-                                    Scanner scanner = new Scanner(System.in);
-                                    name = scanner.nextLine();
-                                    sendBootstrapBroadcast();
-                                    break;
-                            }
-                        }
-
-                        /*if (size != null && newNextNode != null && newPreviousNode != null) {
-                            if (size < 1) {
-                                previousNode = myHash;
-                                nextNode = myHash;
-                            } else {
-                                nextNode = newNextNode;
-                                previousNode = newPreviousNode;
-                            }
-                        }*/
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        tcpThread.start();
-    }
 
     /**
      * dit is slechts een testmethode om de failure methode op te roepen.
@@ -560,6 +484,24 @@ public class Node implements NodeInterface {
             e.printStackTrace();
         }
         return null;
+    }
+
+    @Override
+    public void setSize(String ip, int size) {
+        if(size == -1) {
+            System.out.println("Nameserver rejected our node because of duplicate entry. Quitting...");
+            System.exit(1);
+        } else {
+            System.out.println("Nameserver replied from " + ip);
+            connectToNameServer(ip);
+            if (size == 1) {
+                System.out.println("I'm the first node. I'm also the previous and next node. ");
+                previousNode = myHash;
+                nextNode = myHash;
+            } else {
+                System.out.printf("I'm not the first node (size is %d). Waiting for my next and previous node...\n", size);
+            }
+        }
     }
 
     private void connectToNameServer(String IP) {

@@ -16,4 +16,6 @@ public interface NodeInterface extends Remote {
     void printMessage(String message) throws RemoteException;
 
     void replicateNewFile(FileEntry entry) throws RemoteException;
+
+    void setSize(String ip, int size) throws RemoteException;
 }
