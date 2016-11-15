@@ -9,10 +9,10 @@ import javax.xml.bind.annotation.XmlRootElement;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.InetAddress;
-import java.net.MulticastSocket;
-import java.net.Socket;
+import java.net.*;
+import java.rmi.Naming;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
 import java.util.Arrays;
 import java.util.TreeMap;
 
@@ -141,17 +141,15 @@ public class NameServer implements NameServerInterface {
                         String address = InetAddress.getByAddress(byteAddress).getHostAddress();
                         String name = new String(Arrays.copyOfRange(buf, 4, 255)).trim();
                         System.out.println("Received multicast with IP " + address + " and name " + name);
-                        socket = new Socket(address, COMMUNICATIONS_PORT);
-                        DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
+                        NodeInterface node = getNode(address);
                         if (addNode(name, address)) {
-                            dataOutputStream.writeUTF("size " + nodeMap.size());
+                            node.setSize(Inet4Address.getLocalHost().getHostAddress(), nodeMap.size());
                             System.out.printf("Node %s from %s requested to join and was accepted.\nNew sitation: %s\n", name, address, nodeMap.toString());
                         }
                         else {
-                            dataOutputStream.writeUTF("duplicate");
+                            node.setSize(Inet4Address.getLocalHost().getHostAddress(), -1);
                             System.out.printf("Node %s from %s requested to join but was rejected due to duplicate\n", name, address);
                         }
-                        dataOutputStream.close();
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -170,7 +168,19 @@ public class NameServer implements NameServerInterface {
         return nodeMap.get(hash);
     }
 
-
+    public NodeInterface getNode(String IP) {
+        String name = String.format("//%s/NodeInterface", IP);
+        try {
+            return (NodeInterface) Naming.lookup(name);
+        } catch (NotBoundException e) {
+            e.printStackTrace();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
 
 }
