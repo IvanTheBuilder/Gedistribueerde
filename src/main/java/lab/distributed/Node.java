@@ -27,7 +27,6 @@ public class Node {
     private int nextNode = -1;
     private FileServer fileServer;
 
-
     /**
      * De constructor gaat een nieuwe node aanmaken in de nameserver met de gekozen naam en het ip adres van de machine waarop hij gestart wordt.
      *
@@ -247,7 +246,7 @@ public class Node {
      * Met deze methode wordt de de volgende of vorige node van een bepaalde node aangepast
      *
      * @param target     de node waarin de parameters worden aangepast
-     * @param changed de nieuwe waarde voor de parameter
+     * @param changed    de nieuwe waarde voor de parameter
      * @param nextPrev   moet de volgende of de vorige node aangepast worden? kan waarde "next" of "prev" aannemen
      */
     private void updateNode(int target, int changed, String nextPrev) {
@@ -398,9 +397,9 @@ public class Node {
      * Vraag een bestand op naar een andere node. De bestanden worden gezocht in de subfolder ./files en zullen op de
      * eigen node ook in deze map geplaatst worden.
      *
-     * @param node     De hash van de node
-     * @param filename Naam van het bestand
-     * @return Of het bestand gevonden was of niet, of dat de node niet bestaat.
+     * @param node      De hash van de node
+     * @param filename  Naam van het bestand
+     * @return          Of het bestand gevonden was of niet, of dat de node niet bestaat.
      */
     public boolean requestFile(int node, String filename) {
         try {
@@ -420,9 +419,9 @@ public class Node {
      * Verstuur een bestand naar een andere node. De bestanden worden gezocht in de subfolder ./files en zullen op de
      * destination ook in deze map geplaatst worden.
      *
-     * @param node     Hash van de node
-     * @param filename Bestandsnaam
-     * @return Of dat de server het bestand successvol heeft ontvangen
+     * @param node      Hash van de node
+     * @param filename  Bestandsnaam
+     * @return          Of dat de server het bestand successvol heeft ontvangen
      */
     public boolean sendFile(int node, String filename) {
         try {
