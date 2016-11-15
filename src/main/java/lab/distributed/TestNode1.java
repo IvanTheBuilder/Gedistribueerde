@@ -7,12 +7,14 @@ import java.util.Scanner;
  */
 public class TestNode1 {
     public static void main(String[] args) {
-        Node node = new Node("Robbe");
+        NameServerBootstrapper.startRMIRegistry();
+        Node node = new Node("robrecht");
         //elke keer dat de next en previous node wordt geupdated wordt dit naar de terminal geprint
         //om failure te testen: na een tijdje een netwerkkabel uittrekken en kijken of de andere nodes geupdated worden.
-        System.out.println("Node is opgestart");
-        node.sendPing();
+        //node.sendPing();
         Scanner scanner = new Scanner(System.in);
+     //
+        //  node.sendFile(30888, scanner.nextLine());
         scanner.nextLine();// wachten op invoer van de gebruiker
         /*try {
             System.out.println("sleeping....");

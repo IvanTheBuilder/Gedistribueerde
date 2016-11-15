@@ -1,5 +1,7 @@
 package lab.distributed;
 
+import java.io.File;
+import java.io.IOException;
 import java.rmi.AlreadyBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -12,6 +14,8 @@ import java.rmi.server.UnicastRemoteObject;
 public class NameServerBootstrapper {
 
     public static void main(String[] args) {
+        System.out.println("Starting RMI-server...");
+        startRMIRegistry();
         System.out.println("Starting NameServer...");
         NameServer nameServer = new NameServer();
         try {
@@ -22,6 +26,17 @@ public class NameServerBootstrapper {
         } catch (RemoteException e) {
             e.printStackTrace();
         } catch (AlreadyBoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void startRMIRegistry() {
+        String javaHome = System.getProperty("java.home");
+        ProcessBuilder processBuilder = new ProcessBuilder(javaHome+ File.separator+"bin"+File.separator+"rmiregistry.exe");
+        processBuilder.directory(new File("./target/classes"));
+        try {
+            processBuilder.start();
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

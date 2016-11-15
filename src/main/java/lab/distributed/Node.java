@@ -3,6 +3,7 @@ package lab.distributed;
 import java.io.*;
 import java.net.*;
 import java.nio.file.WatchEvent;
+import java.rmi.AlreadyBoundException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -495,10 +496,6 @@ public class Node {
 
     public String getName() {
         return name;
-    }
-
-    public void directoryChange(WatchEvent.Kind eventType) {
-
     }
 
 }
