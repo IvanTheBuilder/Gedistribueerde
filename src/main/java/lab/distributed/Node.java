@@ -2,15 +2,12 @@ package lab.distributed;
 
 import java.io.*;
 import java.net.*;
+import java.nio.file.WatchEvent;
 import java.rmi.AlreadyBoundException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
-import java.rmi.server.UnicastRemoteObject;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Scanner;
 
 
@@ -56,7 +53,6 @@ public class Node implements NodeInterface {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        startRMI();
         startTCPServerSocket();
         try {
             Thread.sleep(500); // Start TCP socket half a second after multicast listener to prevent deadlock.
@@ -133,18 +129,6 @@ public class Node implements NodeInterface {
         deleteNode(hashName(name));                     //node verwijderen uit de nameserver
         tcpThread.interrupt();
         System.exit(0);
-    }
-
-    public void replicateNewFile(FileEntry entry)
-    {
-        String name = entry.getFileName();
-        if(localFiles.get(name).equals(null)) //als het bestand nog niet lokaal bestaat
-        {
-            replicatedFiles.put(name,entry);
-        }else {
-
-        }
-
     }
 
     /**
@@ -318,7 +302,7 @@ public class Node implements NodeInterface {
      * next param1 = next id param1
      */
     private void startTCPServerSocket() {
-        tcpThread = new Thread(new Runnable() {
+        new Thread(new Runnable() {
             public void run() {
                 try {
                     Integer size = null;
