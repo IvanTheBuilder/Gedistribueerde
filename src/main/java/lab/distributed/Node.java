@@ -580,5 +580,24 @@ public class Node implements NodeInterface {
     public void directoryChange(WatchEvent.Kind eventType) {
 
     }
+    public void directoryChange(String eventType,String fileName) {
+        int temp = hashName(fileName);
+        String address;
+        switch (eventType) {
+            case "ENTRY_CREATE":
+                try {
+                    NameServerInterface nameServerInterface = (NameServerInterface) Naming.lookup(nameServerName);
+                    address = nameServerInterface.getAddress(temp);
+                    /**
+                     *
+                     */
+                } catch (NotBoundException | MalformedURLException | RemoteException e) {
+                    e.printStackTrace();
+                }
+                break;
+            case "ENTRY_DELETE":
 
+                break;
+        }
+    }
 }
