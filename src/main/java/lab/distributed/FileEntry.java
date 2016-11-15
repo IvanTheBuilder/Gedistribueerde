@@ -11,6 +11,7 @@ public class FileEntry implements Comparable<FileEntry> {
     private Node local;
     private String fileName;
     private Integer hash;
+    private Boolean localIsOwner; //dit moet false gezet worden wanneer er een nieuwe node in het netwerk komt en dit niet meer klopt!!!
 
     public FileEntry(String name, Node local, Node owner, Node replicated){
         fileName=name;
@@ -38,6 +39,14 @@ public class FileEntry implements Comparable<FileEntry> {
 
     public Integer getHash() {
         return hash;
+    }
+
+    public Boolean getLocalIsOwner() {
+        return localIsOwner;
+    }
+
+    public void setLocalIsOwner(Boolean localIsOwner) {
+        this.localIsOwner = localIsOwner;
     }
 
     public void setFileName(String fileName) {
