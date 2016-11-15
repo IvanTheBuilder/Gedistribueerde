@@ -561,6 +561,10 @@ public class Node implements NodeInterface {
         System.out.println("Successfully connected to NameServer!");
     }
 
+    public void directoryChange(WatchEvent.Kind eventType) {
+
+    }
+
 
 
 }
