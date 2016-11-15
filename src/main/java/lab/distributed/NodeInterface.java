@@ -14,4 +14,6 @@ public interface NodeInterface extends Remote {
     void setNextNode(int hash) throws RemoteException;
 
     void printMessage(String message) throws RemoteException;
+
+    void replicateNewFile(FileEntry entry) throws RemoteException;
 }

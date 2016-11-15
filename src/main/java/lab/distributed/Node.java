@@ -10,6 +10,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Scanner;
 
 
@@ -30,9 +31,9 @@ public class Node implements NodeInterface {
     private int previousNode = -1;
     private int nextNode = -1;
     private FileServer fileServer;
+    private HashMap<String, FileEntry> localFiles, replicatedFiles;
     private ServerSocket serverSocket;
     private Thread tcpThread;
-
 
     /**
      * De constructor gaat een nieuwe node aanmaken in de nameserver met de gekozen naam en het ip adres van de machine waarop hij gestart wordt.
@@ -133,6 +134,18 @@ public class Node implements NodeInterface {
         deleteNode(hashName(name));                     //node verwijderen uit de nameserver
         tcpThread.interrupt();
         System.exit(0);
+    }
+
+    public void replicateNewFile(FileEntry entry)
+    {
+        String name = entry.getFileName();
+        if(localFiles.get(name).equals(null)) //als het bestand nog niet lokaal bestaat
+        {
+            replicatedFiles.put(name,entry);
+        }else {
+
+        }
+
     }
 
     /**
