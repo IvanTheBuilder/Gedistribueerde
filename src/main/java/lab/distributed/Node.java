@@ -56,6 +56,11 @@ public class Node implements NodeInterface {
         }
         startRMI();
         startTCPServerSocket();
+        try {
+            Thread.sleep(500); // Start TCP socket half a second after multicast listener to prevent deadlock.
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         fileServer = new FileServer(FILESERVER_PORT);
     }
 
