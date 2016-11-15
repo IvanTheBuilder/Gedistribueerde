@@ -174,7 +174,7 @@ public class Node implements NodeInterface {
                         String address = InetAddress.getByAddress(byteAddress).getHostAddress();
                         String name = new String(Arrays.copyOfRange(buf, 4, 255)).trim();
                         hash = hashName(name);
-
+                        NodeInterface node = getNode(address); //Vraag node op langs address want het kan zijn dat hij nog niet in de nameserver staat.
                         /**
                          * Ga eerst na of we de enigste node waren in het netwerk. Zo ja, zet vorige en volgende naar
                          * de nieuwe node, en zet die van de nieuwe node naar ons.
@@ -183,11 +183,8 @@ public class Node implements NodeInterface {
                         if (previousNode == myHash && nextNode == myHash) {
                             previousNode = hash;
                             nextNode = hash;
-                            Socket socket = new Socket(address, COMMUNICATIONS_PORT);
-                            DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
-                            dataOutputStream.writeUTF("prev " + myHash);
-                            dataOutputStream.writeUTF("next " + myHash);
-                            dataOutputStream.close();
+                            node.setNextNode(myHash);
+                            node.setPreviousNode(myHash);
                             System.out.println("A second node has joined. I've set my previous and next node to him and updated him.");
                         }
                         /**
@@ -205,11 +202,8 @@ public class Node implements NodeInterface {
                              * De nieuwe node ligt boven mij, of ligt onder mijn volgende (laagste) node. Ik licht
                              * de nieuwe node in over zijn buren en pas mijn volgende aan.
                              */
-                            Socket socket = new Socket(address, COMMUNICATIONS_PORT);
-                            DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
-                            dataOutputStream.writeUTF("prev " + myHash);
-                            dataOutputStream.writeUTF("next " + nextNode);
-                            dataOutputStream.close();
+                            node.setPreviousNode(myHash);
+                            node.setNextNode(nextNode);
                             System.out.printf("A node (%d) joined between me (%d) and my next neighbour (%d). Updating accordingly...\nWelcome %s!\n", hash, myHash, nextNode, name);
                             nextNode = hash;
                         } else if ((previousNode < hash && hash < myHash) || (previousNode > myHash && (hash < myHash || hash > nextNode))) {
@@ -359,16 +353,6 @@ public class Node implements NodeInterface {
                                     } else {
                                         System.out.printf("I'm not the first node (size is %d). Waiting for my next and previous node...\n", size);
                                     }
-                                    break;
-                                case "prev":
-                                    newPreviousNode = Integer.parseInt(splitted[1]);
-                                    previousNode = newPreviousNode;
-                                    System.out.println("My previous node was updated by " + clientSocket.getInetAddress().getHostAddress() + " to " + previousNode);
-                                    break;
-                                case "next":
-                                    newNextNode = Integer.parseInt(splitted[1]);
-                                    nextNode = newNextNode;
-                                    System.out.println("My next node was updated by " + clientSocket.getInetAddress().getHostAddress() + " to " + nextNode);
                                     break;
                                 case "duplicate":
                                     System.out.println("Deze naam bestaat al in het domein.");
