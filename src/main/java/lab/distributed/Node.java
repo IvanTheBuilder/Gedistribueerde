@@ -7,7 +7,11 @@ import java.rmi.AlreadyBoundException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Scanner;
 
 
@@ -247,6 +251,11 @@ public class Node implements NodeInterface {
     @Override
     public void printMessage(String message) throws RemoteException {
         System.out.println(message);
+    }
+
+    @Override
+    public void replicateNewFile(FileEntry entry) throws RemoteException {
+
     }
 
 
