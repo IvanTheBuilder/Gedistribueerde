@@ -57,6 +57,7 @@ public class Node implements NodeInterface {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        startRMI();
         startTCPServerSocket();
         try {
             Thread.sleep(500); // Start TCP socket half a second after multicast listener to prevent deadlock.
@@ -133,6 +134,26 @@ public class Node implements NodeInterface {
         deleteNode(hashName(name));                     //node verwijderen uit de nameserver
         tcpThread.interrupt();
         System.exit(0);
+    }
+
+    @Override
+    /**
+     * roep deze methode op om een bestand te repliceren naar deze node
+     * @param entry: de bestandsfiche van het te repliceren bestand
+     */
+    public void replicateNewFile(FileEntry entry)
+    {
+        String name = entry.getFileName();
+        if(localFiles.get(name).equals(null)) //als het bestand nog niet lokaal bestaat
+        {
+            entry.setOwner(this);
+            entry.setReplicated(this);
+            replicatedFiles.put(name,entry);
+        }else {
+            entry.setOwner(this);
+            //TODO: replicateNewfile oproepen in vorige node
+        }
+        //TODO: bestand zelf moet nog verzonden worden via tcp
     }
 
     /**
@@ -253,11 +274,6 @@ public class Node implements NodeInterface {
         System.out.println(message);
     }
 
-    @Override
-    public void replicateNewFile(FileEntry entry) throws RemoteException {
-
-    }
-
 
     /**
      * de methode die moet aangeroepen worden wanneer de communicatie met een Node mislukt is
@@ -311,7 +327,7 @@ public class Node implements NodeInterface {
      * next param1 = next id param1
      */
     private void startTCPServerSocket() {
-        new Thread(new Runnable() {
+        tcpThread = new Thread(new Runnable() {
             public void run() {
                 try {
                     Integer size = null;
@@ -573,7 +589,5 @@ public class Node implements NodeInterface {
     public void directoryChange(WatchEvent.Kind eventType) {
 
     }
-
-
 
 }
