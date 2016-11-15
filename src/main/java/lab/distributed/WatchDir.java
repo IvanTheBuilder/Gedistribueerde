@@ -30,6 +30,7 @@ public class WatchDir {
         this.recursive = recursive;
         this.node = node;
 
+
         if (recursive) {
             System.out.format("Scanning %s ...\n", dir);
             registerAll(dir);
