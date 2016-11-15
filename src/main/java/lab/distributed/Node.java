@@ -34,6 +34,7 @@ public class Node implements NodeInterface {
     private HashMap<String, FileEntry> localFiles, replicatedFiles;
     private ServerSocket serverSocket;
     private Thread tcpThread;
+    private NameServerInterface nameServerInterface;
 
     /**
      * De constructor gaat een nieuwe node aanmaken in de nameserver met de gekozen naam en het ip adres van de machine waarop hij gestart wordt.
@@ -98,10 +99,9 @@ public class Node implements NodeInterface {
      */
     public void deleteNode(int hash) {
         try {
-            NameServerInterface nameServerInterface = (NameServerInterface) Naming.lookup(nameServerName);
             if (!nameServerInterface.removeNode(hash))
                 System.out.println("Deze node bestaat niet");
-        } catch (NotBoundException | MalformedURLException | RemoteException e) {
+        } catch (RemoteException e) {
             e.printStackTrace();
         }
 
@@ -116,9 +116,8 @@ public class Node implements NodeInterface {
      */
     public String getFileLocation(String fileName) {
         try {
-            NameServerInterface nameServerInterface = (NameServerInterface) Naming.lookup(nameServerName);
             return nameServerInterface.getOwner(fileName);
-        } catch (NotBoundException | MalformedURLException | RemoteException e) {
+        } catch (RemoteException e) {
             e.printStackTrace();
         }
         return null;
@@ -274,7 +273,6 @@ public class Node implements NodeInterface {
      */
     private void failure(int hash) {
         try {
-            NameServerInterface nameServerInterface = (NameServerInterface) Naming.lookup(nameServerName);
             int nextNode = nameServerInterface.getNextNode(hash);
             int previousNode = nameServerInterface.getPreviousNode(hash);
 
@@ -282,7 +280,7 @@ public class Node implements NodeInterface {
             updateNode(nextNode, previousNode, "prev");       //naar de next node het id van de previous node sturen
             deleteNode(hash);                               //node verwijderen
 
-        } catch (RemoteException | MalformedURLException | NotBoundException e) {
+        } catch (RemoteException e) {
             e.printStackTrace();
         }
     }
@@ -298,12 +296,11 @@ public class Node implements NodeInterface {
         Socket socket;
         DataOutputStream dataOutputStream;
         try {
-            NameServerInterface nameServerInterface = (NameServerInterface) Naming.lookup(nameServerName);
             socket = new Socket(nameServerInterface.getAddress(target), COMMUNICATIONS_PORT);
             dataOutputStream = new DataOutputStream(socket.getOutputStream());
             dataOutputStream.writeUTF(nextPrev + " " + changed); //als nextPrev een verkeerde waarde heeft wordt dit opgevangen in de listener
             dataOutputStream.close();
-        } catch (NotBoundException | MalformedURLException | UnknownHostException | RemoteException e) {
+        } catch (MalformedURLException | UnknownHostException | RemoteException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
@@ -345,7 +342,7 @@ public class Node implements NodeInterface {
                                 case "size":
                                     size = Integer.parseInt(splitted[1]);
                                     System.out.println("Found Nameserver on IP " + clientSocket.getInetAddress().getHostAddress());
-                                    nameServerName = "//" + clientSocket.getInetAddress().getHostAddress() + "/NameServerInterface";
+                                    connectToNameServer(clientSocket.getInetAddress().getHostAddress());
                                     if (size == 1) {
                                         System.out.println("I'm the first node. I'm also the previous and next node. ");
                                         previousNode = myHash;
@@ -398,7 +395,6 @@ public class Node implements NodeInterface {
     public void sendPing() {
 
         try {
-            NameServerInterface nameServerInterface = (NameServerInterface) Naming.lookup(nameServerName);
             Socket socket = new Socket(nameServerInterface.getAddress(nextNode), PING_PORT);
             DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
             DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
@@ -412,8 +408,6 @@ public class Node implements NodeInterface {
         } catch (IOException e) {
             e.printStackTrace();
             failure(nextNode);
-        } catch (NotBoundException e) {
-            e.printStackTrace();
         }
 
 
@@ -449,12 +443,7 @@ public class Node implements NodeInterface {
      */
     public boolean requestFile(int node, String filename) {
         try {
-            NameServerInterface nameServerInterface = (NameServerInterface) Naming.lookup(nameServerName);
             return requestFile(nameServerInterface.getAddress(node), filename);
-        } catch (NotBoundException e) {
-            e.printStackTrace();
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
         } catch (RemoteException e) {
             e.printStackTrace();
         }
@@ -471,12 +460,7 @@ public class Node implements NodeInterface {
      */
     public boolean sendFile(int node, String filename) {
         try {
-            NameServerInterface nameServerInterface = (NameServerInterface) Naming.lookup(nameServerName);
             return sendFile(nameServerInterface.getAddress(node), filename);
-        } catch (NotBoundException e) {
-            e.printStackTrace();
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
         } catch (RemoteException e) {
             e.printStackTrace();
         }
@@ -557,12 +541,7 @@ public class Node implements NodeInterface {
 
     public NodeInterface getNode(int hash) {
         try {
-            NameServerInterface nameServerInterface = (NameServerInterface) Naming.lookup(nameServerName);
             return getNode(nameServerInterface.getAddress(hash));
-        } catch (NotBoundException e) {
-            e.printStackTrace();
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
         } catch (RemoteException e) {
             e.printStackTrace();
         }
@@ -581,6 +560,21 @@ public class Node implements NodeInterface {
             e.printStackTrace();
         }
         return null;
+    }
+
+    private void connectToNameServer(String IP) {
+        System.out.println("Attempting to connect to NameServer");
+        String rmiName = "//" + IP + "/NameServerInterface";
+        try {
+            nameServerInterface = (NameServerInterface) Naming.lookup(rmiName);
+        } catch (NotBoundException e) {
+            e.printStackTrace();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+        System.out.println("Successfully connected to NameServer!");
     }
 
 
