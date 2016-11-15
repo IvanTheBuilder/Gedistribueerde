@@ -1,5 +1,6 @@
 package lab.distributed;
 
+import java.rmi.RemoteException;
 import java.util.Scanner;
 
 /**
@@ -7,12 +8,22 @@ import java.util.Scanner;
  */
 public class TestNode1 {
     public static void main(String[] args) {
-        Node node = new Node("Ivannn");
+        Node node = new Node("Ivannnnnn");
         //elke keer dat de next en previous node wordt geupdated wordt dit naar de terminal geprint
         //om failure te testen: na een tijdje een netwerkkabel uittrekken en kijken of de andere nodes geupdated worden.
         node.sendPing();
         Scanner scanner = new Scanner(System.in);
      //
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        try {
+            node.getNode(1289).printMessage("Test!");
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
         //  node.sendFile(30888, scanner.nextLine());
         scanner.nextLine();// wachten op invoer van de gebruiker
         /*try {
@@ -21,6 +32,11 @@ public class TestNode1 {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }*/
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         node.exit();//afsluiten testen
         System.out.println("node afgesloten");
     }

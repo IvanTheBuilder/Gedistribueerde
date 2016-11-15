@@ -54,6 +54,7 @@ public class Node implements NodeInterface {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        startRMI();
         startTCPServerSocket();
         fileServer = new FileServer(FILESERVER_PORT);
     }
@@ -536,7 +537,7 @@ public class Node implements NodeInterface {
         }
     }
 
-    private NodeInterface getNode(int hash) {
+    public NodeInterface getNode(int hash) {
         try {
             NameServerInterface nameServerInterface = (NameServerInterface) Naming.lookup(nameServerName);
             return getNode(nameServerInterface.getAddress(hash));
@@ -550,7 +551,7 @@ public class Node implements NodeInterface {
         return null;
     }
 
-    private NodeInterface getNode(String IP) {
+    public NodeInterface getNode(String IP) {
         String name = String.format("//%s/NodeInterface", IP);
         try {
             return (NodeInterface) Naming.lookup(name);
