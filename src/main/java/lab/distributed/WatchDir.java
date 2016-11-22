@@ -13,7 +13,7 @@ import java.nio.file.attribute.*;
 import java.io.*;
 import java.util.*;
 
-public class WatchDir {
+public class WatchDir{
 
     private final WatchService watcher;
     private final Map<WatchKey, Path> keys;
@@ -41,6 +41,7 @@ public class WatchDir {
 
         // enable trace after initial registration
         this.trace = true;
+        processEvents();
     }
 
     @SuppressWarnings("unchecked")
@@ -86,64 +87,69 @@ public class WatchDir {
      * Process all events for keys queued to the watcher
      */
     void processEvents() {
-        for (; ; ) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for (; ; ) {
 
-            // wait for key to be signalled
-            WatchKey key;
-            try {
-                key = watcher.take();
-            } catch (InterruptedException x) {
-                return;
-            }
-
-            Path dir = keys.get(key);
-            if (dir == null) {
-                System.err.println("WatchKey not recognized!");
-                continue;
-            }
-
-            for (WatchEvent<?> event : key.pollEvents()) {
-                WatchEvent.Kind kind = event.kind();
-
-                // TBD - provide example of how OVERFLOW event is handled
-                if (kind == OVERFLOW) {
-                    continue;
-                }
-
-                // Context for directory entry event is the file name of entry
-                WatchEvent<Path> ev = cast(event);
-                Path name = ev.context(); //filename
-                Path child = dir.resolve(name);
-
-                // print out event
-                System.out.format("%s: %s\n", event.kind().name(), child);
-
-                // Notify node of changes
-                node.directoryChange(event.kind().name(),name.getFileName().toString());
-
-                // if directory is created, and watching recursively, then
-                // register it and its sub-directories
-                if (recursive && (kind == ENTRY_CREATE)) {
+                    // wait for key to be signalled
+                    WatchKey key;
                     try {
-                        if (Files.isDirectory(child, NOFOLLOW_LINKS)) {
-                            registerAll(child);
+                        key = watcher.take();
+                    } catch (InterruptedException x) {
+                        return;
+                    }
+
+                    Path dir = keys.get(key);
+                    if (dir == null) {
+                        System.err.println("WatchKey not recognized!");
+                        continue;
+                    }
+
+                    for (WatchEvent<?> event : key.pollEvents()) {
+                        WatchEvent.Kind kind = event.kind();
+
+                        // TBD - provide example of how OVERFLOW event is handled
+                        if (kind == OVERFLOW) {
+                            continue;
                         }
-                    } catch (IOException x) {
-                        // ignore to keep sample readable
+
+                        // Context for directory entry event is the file name of entry
+                        WatchEvent<Path> ev = cast(event);
+                        Path name = ev.context(); //filename
+                        Path child = dir.resolve(name);
+
+                        // print out event
+                        System.out.format("%s: %s\n", event.kind().name(), child);
+
+                        // Notify node of changes
+                        node.directoryChange(event.kind().name(), name.getFileName().toString());
+
+                        // if directory is created, and watching recursively, then
+                        // register it and its sub-directories
+                        if (recursive && (kind == ENTRY_CREATE)) {
+                            try {
+                                if (Files.isDirectory(child, NOFOLLOW_LINKS)) {
+                                    registerAll(child);
+                                }
+                            } catch (IOException x) {
+                                // ignore to keep sample readable
+                            }
+                        }
+                    }
+
+                    // reset key and remove from set if directory no longer accessible
+                    boolean valid = key.reset();
+                    if (!valid) {
+                        keys.remove(key);
+
+                        // all directories are inaccessible
+                        if (keys.isEmpty()) {
+                            break;
+                        }
                     }
                 }
             }
-
-            // reset key and remove from set if directory no longer accessible
-            boolean valid = key.reset();
-            if (!valid) {
-                keys.remove(key);
-
-                // all directories are inaccessible
-                if (keys.isEmpty()) {
-                    break;
-                }
-            }
-        }
+        }).start();
     }
 }

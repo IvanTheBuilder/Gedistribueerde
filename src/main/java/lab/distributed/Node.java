@@ -2,6 +2,8 @@ package lab.distributed;
 
 import java.io.*;
 import java.net.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.WatchEvent;
 import java.rmi.AlreadyBoundException;
 import java.rmi.Naming;
@@ -32,6 +34,8 @@ public class Node implements NodeInterface {
     private FileServer fileServer;
     private HashMap<String, FileEntry> localFiles, replicatedFiles;
     private NameServerInterface nameServerInterface;
+    private WatchDir watchDir;
+    private static final Path FILE_DIRECTORY = Paths.get("fileDirectory");
 
     /**
      * De constructor gaat een nieuwe node aanmaken in de nameserver met de gekozen naam en het ip adres van de machine waarop hij gestart wordt.
@@ -60,6 +64,11 @@ public class Node implements NodeInterface {
             e.printStackTrace();
         }
         fileServer = new FileServer(FILESERVER_PORT);
+        try {
+            watchDir = new WatchDir(FILE_DIRECTORY, false, this);//watchdir class op FILE_DIRECTORY, niet recursief, op deze node
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -547,7 +556,9 @@ public class Node implements NodeInterface {
                 }
                 break;
             case "ENTRY_DELETE":
-
+                /*
+                  nog niet gespecifieerd in de opgave.
+                 */
                 break;
         }
     }
