@@ -1,0 +1,15 @@
+Todo
+Opstarten
+	- Lokale bestanden checken voor veranderingen
+		-Indien veranderingen => lokaal opslagen en dan ‘replicateNewFile’ aanroepen 
+		 in de juiste node
+			-juiste node opvragen aan nameserver via hash bestandsnaam
+		-Via TCP bestand doorsturen naar juiste node(implementeren in replicateNewFile)
+		-Zender en ontvanger passen bestandsfiche aan
+	- in de vorige node van de nieuw opgestarte node
+		- controleer alle gerepliceerde bestanden, eventueel naar de nieuwe node verplaatsen
+		- bestanden via tcp verplaatsen
+		- bestandsfiche moet geupdatet worden in de nieuwe eigenaar en lokale locatie
+		  + wordt downloadlocatie
+
+-aanpassen getowner in nameserver: moet hash teruggeven en beschikbaar zijn via rmi
