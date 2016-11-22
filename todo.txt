@@ -24,3 +24,4 @@ Opstarten
 		-als bestand nooit gedownload is geweest => bestand hier verwijderen+ bij eigenaar
 			-anders downloadlocaties updaten
 				-bestaan deze al in bestandsfiche? => aanmaken
+-commentaar schrijven
