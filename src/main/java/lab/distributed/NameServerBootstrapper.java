@@ -35,10 +35,17 @@ public class NameServerBootstrapper {
         ProcessBuilder processBuilder = new ProcessBuilder(javaHome+ File.separator+"bin"+File.separator+"rmiregistry.exe");
         processBuilder.directory(new File("./target/classes"));
         try {
-            processBuilder.start();
+            Process process = processBuilder.start();
+            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    process.destroyForcibly();
+                }
+            }));
         } catch (IOException e) {
             e.printStackTrace();
         }
+
     }
 
 

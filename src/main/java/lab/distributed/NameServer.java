@@ -167,6 +167,8 @@ public class NameServer implements NameServerInterface {
         return nodeMap.get(hash);
     }
 
+
+
     public NodeInterface getNode(String IP) {
         String name = String.format("//%s/NodeInterface", IP);
         try {

@@ -48,6 +48,7 @@ public class FileServer {
                                     clientSocket.close();
                                 }
                             } else if(command.equalsIgnoreCase("receive")) {
+                                System.out.printf("Trying to receive %s\n", fileName);
                                 FileOutputStream fileOutputStream = new FileOutputStream("./files/"+fileName);
                                 byte[] bytes = new byte[8192];
                                 int count;
