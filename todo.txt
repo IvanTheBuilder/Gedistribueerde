@@ -13,3 +13,15 @@ Opstarten
 		  + wordt downloadlocatie
 
 -aanpassen getowner in nameserver: moet hash teruggeven en beschikbaar zijn via rmi
+-update 
+	- in aparte thread checken op nieuwe lokale bestanden en deze op dezelfde manier repliceren
+-shutdown
+	- bestanden die hier gerepliceerd staan repliceren naar vorige node +
+	  bestandsfiche aanpassen op nieuwe locatie + lokale node
+		- bestanden via tcp doorsturen
+	- lokale bestanden
+		-eigenaar verwittigen
+		-als bestand nooit gedownload is geweest => bestand hier verwijderen+ bij eigenaar
+			-anders downloadlocaties updaten
+				-bestaan deze al in bestandsfiche? => aanmaken
+-commentaar schrijven
