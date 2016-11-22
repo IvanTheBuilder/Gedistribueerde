@@ -240,6 +240,7 @@ public class Node implements NodeInterface {
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
+        //TODO: bestand zelf moet nog verzonden worden via tcp
     }
 
     /**
@@ -564,11 +565,6 @@ public class Node implements NodeInterface {
         else
             return false;
     }
-
-    public String getName() {
-        return name;
-    }
-
     private void startRMI() {
         try {
             NodeInterface nodeInterface = (NodeInterface) UnicastRemoteObject.exportObject(this, 0);
