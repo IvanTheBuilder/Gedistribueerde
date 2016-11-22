@@ -207,7 +207,7 @@ public class Node implements NodeInterface {
                             node.setNextNode(nextNode);
                             System.out.printf("A node (%d) joined between me (%d) and my next neighbour (%d). Updating accordingly...\nWelcome %s!\n", hash, myHash, nextNode, name);
                             nextNode = hash;
-                        } else if ((previousNode < hash && hash < myHash) || (previousNode > myHash && (hash < myHash || hash > nextNode))) {
+                        } else if ((previousNode < hash && hash < myHash) || (previousNode > myHash && (hash < myHash || hash > nextNode))) {//TODO mogelijk fout, laatste stuk ...|| hash > previousNode?
                             /**
                              * De node ligt tussen mijn vorige buur en mij. Mijn vorige buur zal de nieuwe node
                              * over zijn nieuwe buren informeren. Ik pas enkel mijn vorige node aan.
@@ -528,12 +528,11 @@ public class Node implements NodeInterface {
         switch (eventType) {
             case "ENTRY_CREATE":
                 try {
-                    NameServerInterface nameServerInterface = (NameServerInterface) Naming.lookup(nameServerName);
                     address = nameServerInterface.getAddress(temp);
                     /**
                      *
                      */
-                } catch (NotBoundException | MalformedURLException | RemoteException e) {
+                } catch (RemoteException e) {
                     e.printStackTrace();
                 }
                 break;
