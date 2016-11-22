@@ -16,25 +16,21 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
-
 public class Node implements NodeInterface {
 
-    /**
-     * Multicast Config
-     */
-    public static final String GROUP = "225.1.2.3";
+    public static final String GROUP = "225.1.2.3"; //multicast groep
     public static final int MULTICAST_PORT = 12345;
     public static final int FILESERVER_PORT = 4001;
     public static final int COMMUNICATIONS_PORT = 4000;
     public static final int PING_PORT = 9000;
-    private String name;
-    private int myHash;
-    private String location;
-    private int previousNode = -1;
-    private int nextNode = -1;
-    private FileServer fileServer;
-    private HashMap<String, FileEntry> localFiles, replicatedFiles;
-    private NameServerInterface nameServerInterface;
+    private String name;                            //naam van de node
+    private int myHash;                             //hash van de node
+    private String location;                        //ip adres van de node   
+    private int previousNode = -1;                  //hash van de vorige node
+    private int nextNode = -1;                      //hash van de huidige node
+    private FileServer fileServer;                  //wordt gebruikt om bestanden te versturen over tcp
+    private HashMap<String, FileEntry> localFiles, replicatedFiles; //key: naam, value: FileEntry
+    private NameServerInterface nameServer;         //interface om de server via RMI te bereiken
     private WatchDir watchDir;
     private static final Path FILE_DIRECTORY = Paths.get("fileDirectory");
 
@@ -46,7 +42,7 @@ public class Node implements NodeInterface {
     public Node(String name) {
         this.name = name;
         this.myHash = hashName(name);
-        try {
+        try {   //adres van de host waarop de node gestart wordt
             location = InetAddress.getLocalHost().getHostAddress();
         } catch (UnknownHostException e) {
             e.printStackTrace();
@@ -60,11 +56,18 @@ public class Node implements NodeInterface {
         }
         startRMI();
         try {
-            Thread.sleep(500); // Start TCP socket half a second after multicast listener to prevent deadlock.
+            Thread.sleep(500); // Start file server half a second after RMI to prevent deadlock.
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        fileServer = new FileServer(FILESERVER_PORT);
+        fileServer = new FileServer(FILESERVER_PORT); //fileserver wordt opgestart
+
+        try {
+            Thread.sleep(500); // Send bootstrapbroadcast half a second after fileserver startup to prevent deadlock.
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        sendBootstrapBroadcast();   //jezelf broadcasten over het netwerk
         try {
             watchDir = new WatchDir(FILE_DIRECTORY, false, this);//watchdir class op FILE_DIRECTORY, niet recursief, op deze node
         } catch (IOException e) {
@@ -105,7 +108,7 @@ public class Node implements NodeInterface {
      */
     public void deleteNode(int hash) {
         try {
-            if (!nameServerInterface.removeNode(hash))
+            if (!nameServer.removeNode(hash))
                 System.out.println("Deze node bestaat niet");
         } catch (RemoteException e) {
             e.printStackTrace();
@@ -115,49 +118,33 @@ public class Node implements NodeInterface {
     }
 
     /**
-     * Deze methode zal de locatie van een bestand opzoeken in de nameserver
-     *
-     * @param fileName de naam van het te zoeken bestand
-     * @return het ip adres van de locatie van het bestand
-     */
-    public String getFileLocation(String fileName) {
-        try {
-            return nameServerInterface.getOwner(fileName);
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    /**
      * deze node wordt verwijderd uit de nameserver en sluit af
      * bestanden die hier gerepliceerd staan, worden gerepliceeerd naar de vorige node
      * Van de lokale bestanden wordt de eigenaar verwittigd of de downloadlocaties aangepast
      */
     public void exit() {
+        ArrayList<String> downloads;
+        FileEntry fileEntry;
+        NodeInterface node;
+
         System.out.println("Leaving the network and updating my neighbours...");
         updateNode(previousNode, nextNode, "next");     //naar de previous node het id van de next node sturen
         updateNode(nextNode, previousNode, "prev");     //naar de next node het id van de previous node sturen
-        System.out.println("replicating my files to previous node...");
-        FileEntry fileEntry = null;
-        String IP = null;
-        NodeInterface node;
+
         //bestanden die hier gerepliceerd staan, repliceren naar de vorige node
+        System.out.println("replicating my files to previous node...");
         for(HashMap.Entry<String, FileEntry> entry: replicatedFiles.entrySet())
         {
-            try {
-                IP=nameServerInterface.getAddress(previousNode);
+            fileEntry = entry.getValue();           //elke bestandsfiche een voor een aflopen
+            try { //entry aanpassen
+                fileEntry.setReplicated(nameServer.getAddress(previousNode));
+                fileEntry.setOwner(nameServer.getAddress(previousNode));
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
-            fileEntry = entry.getValue();
-            //entry aanpassen
-            fileEntry.setReplicated(IP);
-            fileEntry.setOwner(IP);
 
-            //bestandsfiche doorsturen naar lokale node
-            node = getNode(fileEntry.getLocal()); //node waar het bestand lokaal staat
-            try {
+            node = getNode(fileEntry.getLocal());   //node waar het bestand lokaal staat
+            try { //bestandsfiche doorsturen naar lokale node
                 if(!node.changeLocalEntry(fileEntry.getFileName(),fileEntry))
                     System.out.println("bestand kan niet aangepast worden want het bestaat niet...");
             } catch (RemoteException e) {
@@ -165,7 +152,7 @@ public class Node implements NodeInterface {
             }
             //node waar het bestand naar gerepliceerd wordt
             node = getNode(previousNode);
-            //replicatenewfile aanroepen op vorige node
+            //file repliceren naar de vorige node
             try {
                 node.replicateNewFile(fileEntry);
             } catch (RemoteException e) {
@@ -173,13 +160,15 @@ public class Node implements NodeInterface {
             }
             //TODO: bestanden via tcp doorsturen naar vorige node
         }
-        ArrayList<String> downloads;
+
         //Van de lokale bestanden wordt de eigenaar verwittigd of de downloadlocaties aangepast
+        System.out.println("warning owner of local files...");
         for(HashMap.Entry<String, FileEntry> entry: localFiles.entrySet())
         {
             fileEntry = entry.getValue();
             node = getNode(fileEntry.getOwner()); //eigenaar van het bestand
             downloads=fileEntry.getDownloadLocations();
+
             if(downloads.isEmpty()) //nog nergens gedownload geweest
                 try {
                     if(!node.deleteReplicatedFile(fileEntry.getFileName()))
@@ -188,20 +177,16 @@ public class Node implements NodeInterface {
                 } catch (RemoteException e) {
                     e.printStackTrace();
                 }
-            //else downloadlocaties updaten dat de lokale node weg is?
+            //else
+            // TODO: downloadlocaties updaten dat de lokale node weg is?
             //Is de lokale node dan ook een downloadlocatie?
         }
         deleteNode(hashName(name));                     //node verwijderen uit de nameserver
-        System.exit(0);
+        System.exit(0);                                 //systeem afsluiten
     }
 
+
     @Override
-    /**
-     * Verwijdert het bestand van de node
-     * @param naam naam van het te verwijderen bestand
-     * @return true als het bestand bestaat en verwijdert is
-     * @throws RemoteException
-     */
     public boolean deleteReplicatedFile(String naam) throws RemoteException
     {
         if(replicatedFiles.get(naam)!=null) {
@@ -213,11 +198,7 @@ public class Node implements NodeInterface {
     }
 
     @Override
-    /**
-     * roep deze methode op om een bestand te repliceren naar deze node
-     * @param entry: de bestandsfiche van het te repliceren bestand
-     */
-    public void replicateNewFile(FileEntry entry)
+        public void replicateNewFile(FileEntry entry)
     {
         try {
             String name = entry.getFileName();
@@ -363,8 +344,8 @@ public class Node implements NodeInterface {
      */
     private void failure(int hash) {
         try {
-            int nextNode = nameServerInterface.getNextNode(hash);
-            int previousNode = nameServerInterface.getPreviousNode(hash);
+            int nextNode = nameServer.getNextNode(hash);
+            int previousNode = nameServer.getPreviousNode(hash);
 
             updateNode(previousNode, nextNode, "next");       //naar de previous node het id van de next node sturen
             updateNode(nextNode, previousNode, "prev");       //naar de next node het id van de previous node sturen
@@ -386,7 +367,7 @@ public class Node implements NodeInterface {
         Socket socket;
         DataOutputStream dataOutputStream;
         try {
-            socket = new Socket(nameServerInterface.getAddress(target), COMMUNICATIONS_PORT);
+            socket = new Socket(nameServer.getAddress(target), COMMUNICATIONS_PORT);
             dataOutputStream = new DataOutputStream(socket.getOutputStream());
             dataOutputStream.writeUTF(nextPrev + " " + changed); //als nextPrev een verkeerde waarde heeft wordt dit opgevangen in de listener
             dataOutputStream.close();
@@ -405,7 +386,7 @@ public class Node implements NodeInterface {
     public void sendPing() {
 
         try {
-            Socket socket = new Socket(nameServerInterface.getAddress(nextNode), PING_PORT);
+            Socket socket = new Socket(nameServer.getAddress(nextNode), PING_PORT);
             DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
             DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
             while (true) {
@@ -453,7 +434,7 @@ public class Node implements NodeInterface {
      */
     public boolean requestFile(int node, String filename) {
         try {
-            return requestFile(nameServerInterface.getAddress(node), filename);
+            return requestFile(nameServer.getAddress(node), filename);
         } catch (RemoteException e) {
             e.printStackTrace();
         }
@@ -470,7 +451,7 @@ public class Node implements NodeInterface {
      */
     public boolean sendFile(int node, String filename) {
         try {
-            return sendFile(nameServerInterface.getAddress(node), filename);
+            return sendFile(nameServer.getAddress(node), filename);
         } catch (RemoteException e) {
             e.printStackTrace();
         }
@@ -580,7 +561,7 @@ public class Node implements NodeInterface {
 
     public NodeInterface getNode(int hash) {
         try {
-            return getNode(nameServerInterface.getAddress(hash));
+            return getNode(nameServer.getAddress(hash));
         } catch (RemoteException e) {
             e.printStackTrace();
         }
@@ -623,7 +604,7 @@ public class Node implements NodeInterface {
         System.out.println("Attempting to connect to NameServer");
         String rmiName = "//" + IP + "/NameServerInterface";
         try {
-            nameServerInterface = (NameServerInterface) Naming.lookup(rmiName);
+            nameServer = (NameServerInterface) Naming.lookup(rmiName);
         } catch (NotBoundException e) {
             e.printStackTrace();
         } catch (MalformedURLException e) {
@@ -644,7 +625,7 @@ public class Node implements NodeInterface {
         switch (eventType) {
             case "ENTRY_CREATE":
                 try {
-                    String owner = nameServerInterface.getOwner(fileName);//bij fileserver opvragen op welke node dit bestand gerepliceerd moet worden IP krijgen we terug
+                    String owner = nameServer.getOwner(fileName);//bij fileserver opvragen op welke node dit bestand gerepliceerd moet worden IP krijgen we terug
                     FileEntry fileEntry = new FileEntry(fileName, InetAddress.getLocalHost().getHostAddress().toString(), owner, owner);
                     NodeInterface nodeInterface = getNode(owner);
                     nodeInterface.replicateNewFile(fileEntry);
