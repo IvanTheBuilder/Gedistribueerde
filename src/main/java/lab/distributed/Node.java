@@ -137,24 +137,27 @@ public class Node implements NodeInterface {
      */
     public void replicateNewFile(FileEntry entry)
     {
-        String name = entry.getFileName();
-        if(localFiles.get(name).equals(null)) //als het bestand nog niet lokaal bestaat
-        {
-            if(!entry.getLocalIsOwner())
-                entry.setOwner(this);
-            entry.setReplicated(this);
-            replicatedFiles.put(name,entry);
-        }else { //bestand bestaat lokaal en wordt gerepliceerd naar de vorige
-            entry.setOwner(this);
-            entry.setLocalIsOwner(true);
-            NodeInterface node = getNode(previousNode);
-            try {
-                node.replicateNewFile(entry);
-            } catch (RemoteException e) {
-                e.printStackTrace();
+        try {
+            String name = entry.getFileName();
+            if (localFiles.get(name).equals(null)) //als het bestand nog niet lokaal bestaat
+            {
+                if (!entry.getLocalIsOwner())
+                    entry.setOwner(InetAddress.getLocalHost().getHostAddress().toString());
+                entry.setReplicated(InetAddress.getLocalHost().getHostAddress().toString());
+                replicatedFiles.put(name, entry);
+            } else { //bestand bestaat lokaal en wordt gerepliceerd naar de vorige
+                entry.setOwner(InetAddress.getLocalHost().getHostAddress().toString());
+                entry.setLocalIsOwner(true);
+                NodeInterface node = getNode(previousNode);
+                try {
+                    node.replicateNewFile(entry);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
             }
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
         }
-        //TODO: bestand zelf moet nog verzonden worden via tcp
     }
 
     /**
@@ -523,16 +526,23 @@ public class Node implements NodeInterface {
 
     }
     public void directoryChange(String eventType,String fileName) {
-        int temp = hashName(fileName);
-        String address;
+        String node;
         switch (eventType) {
             case "ENTRY_CREATE":
                 try {
-                    address = nameServerInterface.getAddress(temp);
-                    /**
-                     *
-                     */
+                    String owner = nameServerInterface.getOwner(fileName);//bij fileserver opvragen op welke node dit bestand gerepliceerd moet worden IP krijgen we terug
+                    FileEntry fileEntry = new FileEntry(fileName, InetAddress.getLocalHost().getHostAddress().toString(), owner, owner);
+                    NodeInterface nodeInterface = getNode(owner);
+                    nodeInterface.replicateNewFile(fileEntry);
+                    if(!owner.equals(InetAddress.getLocalHost().getHostAddress().toString())){
+                        sendFile(owner, fileName);
+                    }
+                    else{
+                        sendFile(previousNode, fileName);
+                    }
                 } catch (RemoteException e) {
+                    e.printStackTrace();
+                } catch (UnknownHostException e) {
                     e.printStackTrace();
                 }
                 break;

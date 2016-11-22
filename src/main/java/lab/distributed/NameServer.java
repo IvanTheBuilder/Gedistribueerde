@@ -95,7 +95,7 @@ public class NameServer implements NameServerInterface {
      * Vraagt de naam van de node op die "ownership" heeft over een bestand.
      *
      * @param filename Het pad van het bestand.
-     * @return
+     * @return het ip adres van van de owner
      */
     public String getOwner(String filename) {
         int fileHash = hashName(filename);
