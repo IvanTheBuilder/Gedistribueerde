@@ -638,9 +638,11 @@ public class Node implements NodeInterface {
         System.out.println("Successfully connected to NameServer!");
     }
 
-    public void directoryChange(WatchEvent.Kind eventType) {
-
-    }
+    /**
+     * Method die door WatchDir opgeroepen wordt wanneer een event plaatsvindt
+     * @param eventType type van event
+     * @param fileName de filename, in String, met extensie
+     */
     public void directoryChange(String eventType,String fileName) {
         String node;
         switch (eventType) {
@@ -668,5 +670,14 @@ public class Node implements NodeInterface {
                  */
                 break;
         }
+    }
+
+    /**
+     * Wanneer een nieuwe node start moet de vorige node (deze node bijvoorbeeld) nagaan of
+     * er bestanden zijn die hier gerepliceerd zijn, die dan naar de nieuwe node gerepliceerd
+     * moeten worden. Zoja, bestandsfiche updaten en via TCP doorsturen
+     */
+    public void  checkOwnedFilesOnDiscovery(){
+        
     }
 }
