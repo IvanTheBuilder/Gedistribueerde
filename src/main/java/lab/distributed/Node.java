@@ -12,6 +12,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
@@ -130,13 +131,85 @@ public class Node implements NodeInterface {
 
     /**
      * deze node wordt verwijderd uit de nameserver en sluit af
+     * bestanden die hier gerepliceerd staan, worden gerepliceeerd naar de vorige node
+     * Van de lokale bestanden wordt de eigenaar verwittigd of de downloadlocaties aangepast
      */
     public void exit() {
         System.out.println("Leaving the network and updating my neighbours...");
         updateNode(previousNode, nextNode, "next");     //naar de previous node het id van de next node sturen
         updateNode(nextNode, previousNode, "prev");     //naar de next node het id van de previous node sturen
+        System.out.println("replicating my files to previous node...");
+        FileEntry fileEntry = null;
+        String IP = null;
+        NodeInterface node;
+        //bestanden die hier gerepliceerd staan, repliceren naar de vorige node
+        for(HashMap.Entry<String, FileEntry> entry: replicatedFiles.entrySet())
+        {
+            try {
+                IP=nameServerInterface.getAddress(previousNode);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+            fileEntry = entry.getValue();
+            //entry aanpassen
+            fileEntry.setReplicated(IP);
+            fileEntry.setOwner(IP);
+
+            //bestandsfiche doorsturen naar lokale node
+            node = getNode(fileEntry.getLocal()); //node waar het bestand lokaal staat
+            try {
+                if(!node.changeLocalEntry(fileEntry.getFileName(),fileEntry))
+                    System.out.println("bestand kan niet aangepast worden want het bestaat niet...");
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+            //node waar het bestand naar gerepliceerd wordt
+            node = getNode(previousNode);
+            //replicatenewfile aanroepen op vorige node
+            try {
+                node.replicateNewFile(fileEntry);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+            //TODO: bestanden via tcp doorsturen naar vorige node
+        }
+        ArrayList<String> downloads;
+        //Van de lokale bestanden wordt de eigenaar verwittigd of de downloadlocaties aangepast
+        for(HashMap.Entry<String, FileEntry> entry: localFiles.entrySet())
+        {
+            fileEntry = entry.getValue();
+            node = getNode(fileEntry.getOwner()); //eigenaar van het bestand
+            downloads=fileEntry.getDownloadLocations();
+            if(downloads.isEmpty()) //nog nergens gedownload geweest
+                try {
+                    if(!node.deleteReplicatedFile(fileEntry.getFileName()))
+                        System.out.println("bestand kan niet verwijderd worden want het bestaat niet");
+                        //TODO: bestand lokaal van de schijf verwijderen
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            //else downloadlocaties updaten dat de lokale node weg is?
+            //Is de lokale node dan ook een downloadlocatie?
+        }
         deleteNode(hashName(name));                     //node verwijderen uit de nameserver
         System.exit(0);
+    }
+
+    @Override
+    /**
+     * Verwijdert het bestand van de node
+     * @param naam naam van het te verwijderen bestand
+     * @return true als het bestand bestaat en verwijdert is
+     * @throws RemoteException
+     */
+    public boolean deleteReplicatedFile(String naam) throws RemoteException
+    {
+        if(replicatedFiles.get(naam)!=null) {
+            replicatedFiles.remove(naam);
+            //TODO: verwijderen van harde schijf
+            return true;
+        }else
+            return false;
     }
 
     @Override
@@ -456,6 +529,40 @@ public class Node implements NodeInterface {
             return false;
             //e.printStackTrace();
         }
+    }
+
+    /**
+     * Pas een entry van een lokaal bestand aan
+     * @param name de bestandsnaam
+     * @param entry de nieuwe entry
+     * @return true als het bestand bestaat, false als het niet bestaat
+     */
+    public boolean changeLocalEntry(String name, FileEntry entry) throws RemoteException
+    {
+        if(localFiles.get(name) != null)
+        {
+            localFiles.put(name,entry);
+            return true;
+        }
+        else
+            return false;
+    }
+
+    /**
+     * Pas een entry van een replicated bestand aan
+     * @param name de bestandsnaam
+     * @param entry de nieuwe entry
+     * @return true als het bestand bestaat, false als het niet bestaat
+     */
+    public boolean changeReplicatedEntry(String name, FileEntry entry) throws RemoteException
+    {
+        if(replicatedFiles.get(name) != null)
+        {
+            replicatedFiles.put(name,entry);
+            return true;
+        }
+        else
+            return false;
     }
 
     public String getName() {

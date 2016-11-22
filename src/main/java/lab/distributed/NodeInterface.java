@@ -18,4 +18,11 @@ public interface NodeInterface extends Remote {
     void replicateNewFile(FileEntry entry) throws RemoteException;
 
     void setSize(String ip, int size) throws RemoteException;
+
+    boolean changeLocalEntry(String name, FileEntry entry) throws RemoteException;
+
+    boolean changeReplicatedEntry(String name, FileEntry entry) throws RemoteException;
+
+    boolean deleteReplicatedFile(String naam) throws RemoteException;
+
 }
