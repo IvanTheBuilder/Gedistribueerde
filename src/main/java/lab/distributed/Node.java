@@ -35,7 +35,7 @@ public class Node implements NodeInterface {
     private HashMap<String, FileEntry> localFiles, replicatedFiles; //key: naam, value: FileEntry
     private NameServerInterface nameServer;         //interface om de server via RMI te bereiken
     private WatchDir watchDir;
-    private static final Path FILE_DIRECTORY = Paths.get("fileDirectory");
+    private static final Path FILE_DIRECTORY = Paths.get("files/");
 
     /**
      * De constructor gaat een nieuwe node aanmaken in de nameserver met de gekozen naam en het ip adres van de machine waarop hij gestart wordt.
@@ -161,7 +161,7 @@ public class Node implements NodeInterface {
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
-            //TODO: bestanden via tcp doorsturen naar vorige node
+            sendFile(previousNode,fileEntry.getFileName()); // bestand doorsturen naar de vorige node
         }
 
         //Van de lokale bestanden wordt de eigenaar verwittigd of de downloadlocaties aangepast
@@ -460,7 +460,7 @@ public class Node implements NodeInterface {
             DataOutputStream dataOutputStream = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
             dataOutputStream.writeUTF("send");
             dataOutputStream.writeUTF(filename);
-            FileOutputStream fileOutputStream = new FileOutputStream("./files/" + filename);
+            FileOutputStream fileOutputStream = new FileOutputStream(FILE_DIRECTORY + filename);
             byte[] bytes = new byte[8192];
             int count;
             while ((count = dataInputStream.read(bytes)) > 0) {
@@ -477,6 +477,13 @@ public class Node implements NodeInterface {
         }
     }
 
+    /**
+     * Verstuur een bestand naar een andere node. De bestanden worden gezocht in de subfolder ./files en zullen op de
+     * destination ook in deze map geplaatst worden.
+     * @param address ip adres van de node
+     * @param filename bestandsnaam
+     * @return  Of dat de server het bestand successvol heeft ontvangen
+     */
     public boolean sendFile(String address, String filename) {
         try {
             Socket socket = new Socket(address, FILESERVER_PORT);
@@ -484,7 +491,7 @@ public class Node implements NodeInterface {
             DataOutputStream dataOutputStream = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
             dataOutputStream.writeUTF("receive");
             dataOutputStream.writeUTF(filename);
-            FileInputStream fileInputStream = new FileInputStream("./files/" + filename);
+            FileInputStream fileInputStream = new FileInputStream(FILE_DIRECTORY + filename);
             byte[] bytes = new byte[8192];
             int count;
             while ((count = fileInputStream.read(bytes)) > 0) {
