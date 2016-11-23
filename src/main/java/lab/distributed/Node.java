@@ -348,6 +348,7 @@ public class Node implements NodeInterface {
             e.printStackTrace();
         }
     }
+    //TODO: deze methode op de juiste plekken oproepen
 
     /**
      * Met deze methode wordt de de volgende of vorige node van een bepaalde node aangepast
