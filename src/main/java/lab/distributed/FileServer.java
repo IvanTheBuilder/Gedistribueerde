@@ -5,6 +5,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 /**
+ * Fileserver die wordt gebruikt om bestanden over tcp te sturen
  * Created by Ivan on 10/11/2016.
  */
 public class FileServer {
@@ -66,8 +67,6 @@ public class FileServer {
                 }
             }).start();
     }
-
-
 
     public File getFile(String name) {
         return new File("./files/"+name);

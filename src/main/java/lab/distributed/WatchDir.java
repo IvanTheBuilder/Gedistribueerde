@@ -2,6 +2,9 @@ package lab.distributed;
 
 /*
  * Copyright (c) 2008, 2010, Oracle and/or its affiliates. All rights reserved.
+ * Klasse die een bepaalde directory "watched". Als er bestanden bijkomen/verwijderd worden, dan wordt dit opgemerkt (Event)
+ * Methode directoryChange in de geassocieerde node wordt aangeroepen om de juiste handeling te ondernemen,
+ * elke node heeft een eigen watchDirectory.
  */
 
 import java.nio.file.*;
