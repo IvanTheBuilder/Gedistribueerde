@@ -276,6 +276,7 @@ public class Node implements NodeInterface {
                             node.setNextNode(nextNode);
                             System.out.printf("A node (%d) joined between me (%d) and my next neighbour (%d). Updating accordingly...\nWelcome %s!\n", hash, myHash, nextNode, name);
                             nextNode = hash;
+                            checkOwnedFilesOnDiscovery();
                         } else if ((previousNode < hash && hash < myHash) || (previousNode > myHash && (hash < myHash || hash > previousNode))) {
                             /**
                              * De node ligt tussen mijn vorige buur en mij. Mijn vorige buur zal de nieuwe node
