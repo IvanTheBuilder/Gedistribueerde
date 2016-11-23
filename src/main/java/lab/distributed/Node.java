@@ -16,6 +16,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
+/**
+ * Een node in system y
+ */
 public class Node implements NodeInterface {
 
     public static final String GROUP = "225.1.2.3"; //multicast groep

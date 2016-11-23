@@ -4,7 +4,8 @@ import java.io.File;
 import java.util.ArrayList;
 
 /**
- * Created by licensed on 11/9/2016.
+ * Een bestandsfiche van een bestand
+ * Created by Robrecht on 11/9/2016.
  */
 public class FileEntry implements Comparable<FileEntry> {
     private String owner;

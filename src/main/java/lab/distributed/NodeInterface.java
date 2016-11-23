@@ -4,6 +4,7 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 
 /**
+ * Interface van de Node waardoor we een node via RMI kunnen bereiken
  * Created by Ivan on 15/11/2016.
  */
 public interface NodeInterface extends Remote {

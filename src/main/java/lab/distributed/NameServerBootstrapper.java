@@ -9,6 +9,7 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 
 /**
+ * Zorgt voor het correct opstarten van de nameserver
  * Created by Ivan on 25/10/2016.
  */
 public class NameServerBootstrapper {
