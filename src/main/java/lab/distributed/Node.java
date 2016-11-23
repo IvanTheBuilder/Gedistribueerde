@@ -1,5 +1,7 @@
 package lab.distributed;
 
+import sun.util.resources.cldr.ja.TimeZoneNames_ja;
+
 import java.io.*;
 import java.net.*;
 import java.nio.file.Path;
@@ -12,9 +14,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
+import java.util.*;
 
 /**
  * Een node in system y
@@ -263,6 +263,8 @@ public class Node implements NodeInterface {
                              * SITUATIE 1: (eerste deel van if-case)
                              * De node ligt tussen mij en mijn volgende buur. De nieuwe node is mijn volgende en ik ben
                              * de vorige van de nieuwe node. Ik zeg dit tegen de nieuwe node en pas mijn volgende aan.
+                             *
+                             * Methode checkOwnedFileOnDiscovery aanroepen.
                              */
                             /**
                              * SITUATIE 2: (tweede monstreuze deel van if-case)
@@ -274,7 +276,7 @@ public class Node implements NodeInterface {
                             node.setNextNode(nextNode);
                             System.out.printf("A node (%d) joined between me (%d) and my next neighbour (%d). Updating accordingly...\nWelcome %s!\n", hash, myHash, nextNode, name);
                             nextNode = hash;
-                        } else if ((previousNode < hash && hash < myHash) || (previousNode > myHash && (hash < myHash || hash > nextNode))) {//TODO mogelijk fout, laatste stuk ...|| hash > previousNode?
+                        } else if ((previousNode < hash && hash < myHash) || (previousNode > myHash && (hash < myHash || hash > previousNode))) {
                             /**
                              * De node ligt tussen mijn vorige buur en mij. Mijn vorige buur zal de nieuwe node
                              * over zijn nieuwe buren informeren. Ik pas enkel mijn vorige node aan.
@@ -655,7 +657,72 @@ public class Node implements NodeInterface {
      * er bestanden zijn die hier gerepliceerd zijn, die dan naar de nieuwe node gerepliceerd
      * moeten worden. Zoja, bestandsfiche updaten en via TCP doorsturen
      */
-    public void  checkOwnedFilesOnDiscovery(){
-        
+    public void checkOwnedFilesOnDiscovery() {
+        //localfiles afgaan
+        Iterator iterator = localFiles.entrySet().iterator();
+        while (iterator.hasNext()) {
+            //Controleer eerst ownership
+            //Owner? kijk of nieuwe node owner moet worden
+            Map.Entry<String, FileEntry> pair = (Map.Entry<String, FileEntry>) iterator.next();
+            FileEntry valueOfEntry = pair.getValue();
+            if (valueOfEntry.getOwner().equals(location)) {
+                if (valueOfEntry.getHash() > nextNode) {
+                    //de nieuwe node wordt eigenaar (=nextnode)
+                    //wordt zelf downloadlocatie?
+                    try {
+                        valueOfEntry.setOwner(nameServer.getAddress(nextNode));
+                        valueOfEntry.setReplicated(nameServer.getAddress(nextNode));
+                        //TODO mogelijk onderstaande lijn uit comment halen.
+                        //valueOfEntry.addDownloadLocation(location); eigen IP aan downloadlocations toevoegen?
+                        NodeInterface nodeInterface = getNode(nextNode);
+                        nodeInterface.replicateNewFile(valueOfEntry);
+                        sendFile(nextNode, valueOfEntry.getFileName());
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+
+        iterator = replicatedFiles.entrySet().iterator();
+        //replicatedfiles afgaan
+        while (iterator.hasNext()) {
+            Map.Entry<String, FileEntry> pair = (Map.Entry<String, FileEntry>) iterator.next();
+            FileEntry valueOfEntry = pair.getValue();
+            //Owner?
+            if (valueOfEntry.getOwner().equals(location)) {
+                //kijk of nieuwe node beter geschikt is voor bestanden te repliceren
+                if (valueOfEntry.getHash() > nextNode) {
+                    //de nieuwe node wordt eigenaar (=nextnode)
+                    //wordt zelf downloadlocatie
+                    try {
+                        valueOfEntry.setOwner(nameServer.getAddress(nextNode));
+                        valueOfEntry.setReplicated(nameServer.getAddress(nextNode));
+                        valueOfEntry.addDownloadLocation(location);
+                        NodeInterface nodeInterface = getNode(nextNode);
+                        nodeInterface.replicateNewFile(valueOfEntry);
+                        sendFile(nextNode, valueOfEntry.getFileName());
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
+                }
+            } else {
+                //Geen Owner?
+                if (valueOfEntry.getHash() > nextNode) {
+                    //repliceer naar volgende node, maar deze wordt geen eigenaar.
+                    //Wordt zelf downloadlocatie.
+                    try {
+                        valueOfEntry.setReplicated(nameServer.getAddress(nextNode));
+                        valueOfEntry.addDownloadLocation(location);
+                        NodeInterface nodeInterface = getNode(nextNode);
+                        nodeInterface.replicateNewFile(valueOfEntry);
+                        sendFile(nextNode, valueOfEntry.getFileName());
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+        }
     }
 }
