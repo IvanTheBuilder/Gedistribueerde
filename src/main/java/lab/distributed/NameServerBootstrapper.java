@@ -1,5 +1,7 @@
 package lab.distributed;
 
+import lab.distributed.gui.NameserverGUI;
+
 import java.io.File;
 import java.io.IOException;
 import java.rmi.AlreadyBoundException;
@@ -28,6 +30,10 @@ public class NameServerBootstrapper {
         } catch (AlreadyBoundException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void startNameserver(NameserverGUI nameserverGUI) {
+
     }
 
     public static void startRMIRegistry() {

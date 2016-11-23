@@ -1,5 +1,7 @@
 package lab.distributed;
 
+import lab.distributed.gui.NameserverGUI;
+
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
@@ -29,9 +31,15 @@ public class NameServer implements NameServerInterface {
     public static final int COMMUNICATIONS_PORT = 4000;
     @XmlElement(name = "nodemap")
     TreeMap<Integer, String> nodeMap = new TreeMap<>();
+    private NameserverGUI nameserverGUI;
 
     public NameServer() {
         startMulticastListener();
+    }
+
+    public NameServer(NameserverGUI gui) {
+        startMulticastListener();
+        this.nameserverGUI = gui;
     }
 
     public static NameServer fromDisk() {
@@ -61,6 +69,7 @@ public class NameServer implements NameServerInterface {
         if (!nodeMap.containsKey(hashName(nodeName))) {
             nodeMap.put(hashName(nodeName), inetAddress);
             saveToDisk();
+            updateGuiList();
             return true;
         } else
             return false;
@@ -77,6 +86,7 @@ public class NameServer implements NameServerInterface {
         if(temp) {
         System.out.printf("Node with hash %d left. New sitation: %s\n", nodeName, nodeMap.toString());
         saveToDisk();
+            updateGuiList();
         }
         return temp;
     }
@@ -181,6 +191,12 @@ public class NameServer implements NameServerInterface {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public void updateGuiList() {
+        if(nameserverGUI != null) {
+            nameserverGUI.updateNodeMap(nodeMap);
+        }
     }
 
 
