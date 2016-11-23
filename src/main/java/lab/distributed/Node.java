@@ -628,6 +628,7 @@ public class Node implements NodeInterface {
      */
     public void directoryChange(String eventType,String fileName) {
         String node;
+        System.out.println("proberen om een event te behandelen");
         switch (eventType) {
             case "ENTRY_CREATE":
                 try {
@@ -636,11 +637,14 @@ public class Node implements NodeInterface {
                     NodeInterface nodeInterface = getNode(owner);
                     nodeInterface.replicateNewFile(fileEntry);
                     if(!owner.equals(location)){
+                        System.out.println("bestand verzenden aanroepen");
                         sendFile(owner, fileName);
                     }
                     else{
+                        System.out.println("bestand verzenden aanroepen");
                         sendFile(previousNode, fileName);
                     }
+                    System.out.println("bestand is verzonden");
                 } catch (RemoteException e) {
                     e.printStackTrace();
                 }
