@@ -188,7 +188,6 @@ public class Node implements NodeInterface {
         System.exit(0);                                 //systeem afsluiten
     }
 
-
     @Override
     public boolean deleteReplicatedFile(String naam) throws RemoteException
     {
@@ -199,7 +198,6 @@ public class Node implements NodeInterface {
         }else
             return false;
     }
-
 
     @Override
     public void replicateNewFile(FileEntry entry)
@@ -364,6 +362,7 @@ public class Node implements NodeInterface {
         try {
             socket = new Socket(nameServer.getAddress(target), COMMUNICATIONS_PORT);
             dataOutputStream = new DataOutputStream(socket.getOutputStream());
+            //TODO dit is naar de kloten
             dataOutputStream.writeUTF(nextPrev + " " + changed); //als nextPrev een verkeerde waarde heeft wordt dit opgevangen in de listener
             dataOutputStream.close();
         } catch (MalformedURLException | UnknownHostException | RemoteException e) {
