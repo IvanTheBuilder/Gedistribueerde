@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.TreeMap;
 
 /**
+ * Nameserver in system y
  * Created by Ivan on 12/10/2016.
  */
 @XmlRootElement(name = "nameserver")
@@ -37,6 +38,10 @@ public class NameServer implements NameServerInterface {
         startMulticastListener();
     }
 
+    /**
+     * laad de nameserver van de disk
+     * @return
+     */
     public NameServer(NameserverGUI gui) {
         startMulticastListener();
         this.nameserverGUI = gui;
@@ -54,17 +59,17 @@ public class NameServer implements NameServerInterface {
         }
     }
 
+    /**
+     * hash genereren van een bepaalde naam
+     *
+     * @param name de naam waarvan de hash wordt gegenereerd
+     * @return de gegenereerde hash
+     */
     public static final int hashName(String name) {
         return Math.abs(name.hashCode() % 32768);
     }
 
-    /**
-     * Voeg een node toe aan het systeem.
-     *
-     * @param nodeName    String, de naam van deze node
-     * @param inetAddress String, het IP-adres van deze node.
-     * @return Indien de node is toegevoegd, return true. Indien reeds een node met zelfde naaam, return false
-     */
+    @Override
     public boolean addNode(String nodeName, String inetAddress) {
         if (!nodeMap.containsKey(hashName(nodeName))) {
             nodeMap.put(hashName(nodeName), inetAddress);
@@ -75,12 +80,7 @@ public class NameServer implements NameServerInterface {
             return false;
     }
 
-    /**
-     * Verwijder een node uit het systeem
-     *
-     * @param nodeName String, de hash(id) van de node
-     * @return Geeft true terug als node is gevonden en verwijderd. Geeft false indien node niet gevonden.
-     */
+    @Override
     public boolean removeNode(int nodeName) {
         boolean temp = nodeMap.remove(nodeName) != null;
         if(temp) {
@@ -91,22 +91,19 @@ public class NameServer implements NameServerInterface {
         return temp;
     }
 
+    @Override
     public int getPreviousNode(int hash) {
         Integer previous = nodeMap.lowerKey(hash);
         return previous != null ? previous.intValue() : nodeMap.lastKey();
     }
 
+    @Override
     public int getNextNode(int hash) {
         Integer next = nodeMap.higherKey(hash);
         return next != null ? next.intValue() : nodeMap.firstKey();
     }
 
-    /**
-     * Vraagt de naam van de node op die "ownership" heeft over een bestand.
-     *
-     * @param filename Het pad van het bestand.
-     * @return
-     */
+    @Override
     public String getOwner(String filename) {
         int fileHash = hashName(filename);
         int closest = -1;
@@ -121,6 +118,9 @@ public class NameServer implements NameServerInterface {
         else return null;
     }
 
+    /**
+     * slaag de nameserver op op de schijf
+     */
     public void saveToDisk() {
         try {
             JAXBContext context = JAXBContext.newInstance(NameServer.class);
@@ -167,18 +167,16 @@ public class NameServer implements NameServerInterface {
         }).start();
     }
 
-    /**
-     * Vraag het IP op van een node.
-     *
-     * @param hash
-     * @return
-     */
+    @Override
     public String getAddress(int hash) {
         return nodeMap.get(hash);
     }
 
-
-
+    /**
+     * geeft de interface van een node terug zodat deze via rmi kan aangeroepen worden
+     * @param IP het ip adres van de gevraagde node
+     * @return de interface van de gevraagde node
+     */
     public NodeInterface getNode(String IP) {
         String name = String.format("//%s/NodeInterface", IP);
         try {

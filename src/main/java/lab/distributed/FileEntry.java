@@ -1,35 +1,49 @@
 package lab.distributed;
 
 import java.io.File;
+import java.util.ArrayList;
 
 /**
- * Created by licensed on 11/9/2016.
+ * Een bestandsfiche van een bestand
+ * Created by Robrecht on 11/9/2016.
  */
 public class FileEntry implements Comparable<FileEntry> {
-    private Node owner;
-    private Node replicated;
-    private Node local;
+    private String owner;
+    private String replicated;
+    private String local;
     private String fileName;
     private Integer hash;
     private Boolean localIsOwner; //dit moet false gezet worden wanneer er een nieuwe node in het netwerk komt en dit niet meer klopt!!!
+    private ArrayList<String> downloadLocations; // dit is een lijst van ips van de downloadlocaties
 
-    public FileEntry(String name, Node local, Node owner, Node replicated){
+    public FileEntry(String name, String local, String owner, String replicated){
         fileName=name;
         hash=hashName(name);
         this.local=local;
         this.owner=owner;
         this.replicated=replicated;
+        this.downloadLocations = null;
     }
 
-    public Node getOwner() {
+    public void addDownloadLocation(String IP)
+    {
+        downloadLocations.add(IP);
+    }
+
+    public ArrayList<String> getDownloadLocations()
+    {
+        return downloadLocations;
+    }
+
+    public String getOwner() {
         return owner;
     }
 
-    public Node getReplicated() {
+    public String getReplicated() {
         return replicated;
     }
 
-    public Node getLocal() {
+    public String getLocal() {
         return local;
     }
 
@@ -54,11 +68,11 @@ public class FileEntry implements Comparable<FileEntry> {
         hash=  hashName(fileName);
     }
 
-    public void setReplicated(Node replicated) {
+    public void setReplicated(String replicated) {
         this.replicated = replicated;
     }
 
-    public void setOwner(Node owner) {
+    public void setOwner(String owner) {
         this.owner = owner;
     }
 
@@ -74,7 +88,7 @@ public class FileEntry implements Comparable<FileEntry> {
 
     @Override
     public String toString() {
-        return "bestand "+fileName+" staat op node "+owner.getName();
+        return "bestand "+fileName+" staat op node met hash"+replicated;
     }
 
     @Override

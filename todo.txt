@@ -12,7 +12,6 @@ Opstarten
 		- bestandsfiche moet geupdatet worden in de nieuwe eigenaar en lokale locatie
 		  + wordt downloadlocatie
 
--aanpassen getowner in nameserver: moet hash teruggeven en beschikbaar zijn via rmi
 -update 
 	- in aparte thread checken op nieuwe lokale bestanden en deze op dezelfde manier repliceren
 -shutdown
