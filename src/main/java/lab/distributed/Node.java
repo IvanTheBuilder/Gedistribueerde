@@ -131,8 +131,12 @@ public class Node implements NodeInterface {
         NodeInterface node;
 
         System.out.println("Leaving the network and updating my neighbours...");
-        updateNode(previousNode, nextNode, "next");     //naar de previous node het id van de next node sturen
-        updateNode(nextNode, previousNode, "prev");     //naar de next node het id van de previous node sturen
+        try {
+            getNode(previousNode).setNextNode(nextNode);//naar de previous node het id van de next node sturen
+            getNode(nextNode).setPreviousNode(previousNode);//naar de next node het id van de previous node sturen
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
 
         //bestanden die hier gerepliceerd staan, repliceren naar de vorige node
         System.out.println("replicating my files to previous node...");
@@ -341,38 +345,15 @@ public class Node implements NodeInterface {
             int nextNode = nameServer.getNextNode(hash);
             int previousNode = nameServer.getPreviousNode(hash);
 
-            updateNode(previousNode, nextNode, "next");       //naar de previous node het id van de next node sturen
-            updateNode(nextNode, previousNode, "prev");       //naar de next node het id van de previous node sturen
+            getNode(previousNode).setNextNode(nextNode);//naar de previous node het id van de next node sturen
+            getNode(nextNode).setPreviousNode(previousNode);//naar de next node het id van de previous node sturen
+
             deleteNode(hash);                                 //node verwijderen
         } catch (RemoteException e) {
             e.printStackTrace();
         }
     }
-    //TODO: deze methode op de juiste plekken oproepen
-
-    /**
-     * Met deze methode wordt de de volgende of vorige node van een bepaalde node aangepast
-     *
-     * @param target     de node waarin de parameters worden aangepast
-     * @param changed    de nieuwe waarde voor de parameter (hash)
-     * @param nextPrev   moet de volgende of de vorige node aangepast worden? kan waarde "next" of "prev" aannemen
-     */
-    private void updateNode(int target, int changed, String nextPrev) {
-        Socket socket;
-        DataOutputStream dataOutputStream;
-        try {
-            socket = new Socket(nameServer.getAddress(target), COMMUNICATIONS_PORT);
-            dataOutputStream = new DataOutputStream(socket.getOutputStream());
-            //TODO dit is naar de kloten
-            dataOutputStream.writeUTF(nextPrev + " " + changed); //als nextPrev een verkeerde waarde heeft wordt dit opgevangen in de listener
-            dataOutputStream.close();
-        } catch (MalformedURLException | UnknownHostException | RemoteException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-            failure(target);
-        }
-    }
+    //TODO: failure methode op de juiste plekken oproepen
 
     /**
      * dit is slechts een testmethode om de failure methode op te roepen.
