@@ -16,7 +16,7 @@ public class NameServerBootstrapper {
 
     public static void main(String[] args) {
         System.out.println("Starting RMI-server...");
-        startRMIRegistry();
+        //startRMIRegistry();
         System.out.println("Starting NameServer...");
         NameServer nameServer = new NameServer();
         try {
