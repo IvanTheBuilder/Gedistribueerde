@@ -49,7 +49,7 @@ public class FileServer {
                                     clientSocket.close();
                                 }
                             } else if(command.equalsIgnoreCase("receive")) {
-                                FileOutputStream fileOutputStream = new FileOutputStream("./files/"+fileName);
+                                FileOutputStream fileOutputStream = new FileOutputStream("./replicated/"+fileName);
                                 byte[] bytes = new byte[8192];
                                 int count;
                                 while ((count = in.read(bytes)) > 0) {

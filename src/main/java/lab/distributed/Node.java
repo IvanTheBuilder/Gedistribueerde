@@ -1,12 +1,9 @@
 package lab.distributed;
 
-import sun.util.resources.cldr.ja.TimeZoneNames_ja;
-
 import java.io.*;
 import java.net.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.WatchEvent;
 import java.rmi.AlreadyBoundException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
@@ -35,7 +32,8 @@ public class Node implements NodeInterface {
     private HashMap<String, FileEntry> localFiles, replicatedFiles; //key: naam, value: FileEntry
     private NameServerInterface nameServer;         //interface om de server via RMI te bereiken
     private WatchDir watchDir;
-    private static final Path FILE_DIRECTORY = Paths.get("files");
+    private static final Path LOCAL_DIRECTORY = Paths.get("local");
+    private static final Path REPLICATED_DIRECTORY = Paths.get("replicated");
 
     /**
      * De constructor gaat een nieuwe node aanmaken in de nameserver met de gekozen naam en het ip adres van de machine waarop hij gestart wordt.
@@ -74,7 +72,7 @@ public class Node implements NodeInterface {
         }
         sendBootstrapBroadcast();   //jezelf broadcasten over het netwerk
         try {
-            watchDir = new WatchDir(FILE_DIRECTORY, false, this);//watchdir class op FILE_DIRECTORY, niet recursief, op deze node
+            watchDir = new WatchDir(LOCAL_DIRECTORY, false, this);//watchdir class op LOCAL_DIRECTORY, niet recursief, op deze node
             System.out.println("Watchdir aangemaakt");
         } catch (IOException e) {
             System.out.println("Watchdir niet aangemaakt");
@@ -169,7 +167,7 @@ public class Node implements NodeInterface {
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
-            sendFile(previousNode,fileEntry.getFileName()); // bestand doorsturen naar de vorige node
+            sendFile(previousNode,fileEntry.getFileName(),REPLICATED_DIRECTORY); // bestand doorsturen naar de vorige node
         }
 
         //Van de lokale bestanden wordt de eigenaar verwittigd of de downloadlocaties aangepast
@@ -226,7 +224,7 @@ public class Node implements NodeInterface {
             System.out.println("bestand wordt gerepliceerd naar vorige node want het staat lokaal bij mij");
             try {
                 node.replicateNewFile(entry);
-                sendFile(previousNode,entry.getFileName());
+                sendFile(previousNode,entry.getFileName(),LOCAL_DIRECTORY);
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
@@ -428,9 +426,9 @@ public class Node implements NodeInterface {
      * @param filename  Bestandsnaam
      * @return          Of dat de server het bestand successvol heeft ontvangen
      */
-    public boolean sendFile(int node, String filename) {
+    public boolean sendFile(int node, String filename, Path pad) {
         try {
-            return sendFile(nameServer.getAddress(node), filename);
+            return sendFile(nameServer.getAddress(node), filename, pad);
         } catch (RemoteException e) {
             e.printStackTrace();
         }
@@ -451,7 +449,7 @@ public class Node implements NodeInterface {
             DataOutputStream dataOutputStream = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
             dataOutputStream.writeUTF("send");
             dataOutputStream.writeUTF(filename);
-            FileOutputStream fileOutputStream = new FileOutputStream(FILE_DIRECTORY + filename);
+            FileOutputStream fileOutputStream = new FileOutputStream("."+File.separator+ REPLICATED_DIRECTORY + File.separator+filename);
             byte[] bytes = new byte[8192];
             int count;
             while ((count = dataInputStream.read(bytes)) > 0) {
@@ -475,14 +473,14 @@ public class Node implements NodeInterface {
      * @param filename bestandsnaam
      * @return  Of dat de server het bestand successvol heeft ontvangen
      */
-    public boolean sendFile(String address, String filename) {
+    public boolean sendFile(String address, String filename, Path pad) {
         try {
             Socket socket = new Socket(address, FILESERVER_PORT);
             DataInputStream dataInputStream = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
             DataOutputStream dataOutputStream = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
             dataOutputStream.writeUTF("receive");
             dataOutputStream.writeUTF(filename);
-            FileInputStream fileInputStream = new FileInputStream("."+File.separator + FILE_DIRECTORY +File.separator+ filename);
+            FileInputStream fileInputStream = new FileInputStream("."+File.separator + pad +File.separator+ filename);
             byte[] bytes = new byte[8192];
             int count;
             while ((count = fileInputStream.read(bytes)) > 0) {
@@ -627,12 +625,12 @@ public class Node implements NodeInterface {
                     nodeInterface.replicateNewFile(fileEntry);
                     if(!owner.equals(location)){
                         System.out.println("bestand verzenden aanroepen");
-                        sendFile(owner, fileName);
+                        sendFile(owner, fileName, LOCAL_DIRECTORY);
                         System.out.println("bestand is verzonden naar replicated");
                     }
                     else{
                         System.out.println("bestand verzenden aanroepen");
-                        sendFile(previousNode, fileName);
+                        sendFile(previousNode, fileName, LOCAL_DIRECTORY);
                         System.out.println("bestand is verzonden naar previous node");
                     }
 
@@ -672,7 +670,7 @@ public class Node implements NodeInterface {
                         //valueOfEntry.addDownloadLocation(location); eigen IP aan downloadlocations toevoegen?
                         NodeInterface nodeInterface = getNode(nextNode);
                         nodeInterface.replicateNewFile(valueOfEntry);
-                        sendFile(nextNode, valueOfEntry.getFileName());
+                        sendFile(nextNode, valueOfEntry.getFileName(),LOCAL_DIRECTORY);
                     } catch (RemoteException e) {
                         e.printStackTrace();
                     }
@@ -697,7 +695,7 @@ public class Node implements NodeInterface {
                         valueOfEntry.addDownloadLocation(location);
                         NodeInterface nodeInterface = getNode(nextNode);
                         nodeInterface.replicateNewFile(valueOfEntry);
-                        sendFile(nextNode, valueOfEntry.getFileName());
+                        sendFile(nextNode, valueOfEntry.getFileName(), REPLICATED_DIRECTORY);
                     } catch (RemoteException e) {
                         e.printStackTrace();
                     }
@@ -712,7 +710,7 @@ public class Node implements NodeInterface {
                         valueOfEntry.addDownloadLocation(location);
                         NodeInterface nodeInterface = getNode(nextNode);
                         nodeInterface.replicateNewFile(valueOfEntry);
-                        sendFile(nextNode, valueOfEntry.getFileName());
+                        sendFile(nextNode, valueOfEntry.getFileName(), REPLICATED_DIRECTORY);
                     } catch (RemoteException e) {
                         e.printStackTrace();
                     }
