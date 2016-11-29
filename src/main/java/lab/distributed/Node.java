@@ -35,7 +35,7 @@ public class Node implements NodeInterface {
     private HashMap<String, FileEntry> localFiles, replicatedFiles; //key: naam, value: FileEntry
     private NameServerInterface nameServer;         //interface om de server via RMI te bereiken
     private WatchDir watchDir;
-    private static final Path FILE_DIRECTORY = Paths.get("files/");
+    private static final Path FILE_DIRECTORY = Paths.get("files");
 
     /**
      * De constructor gaat een nieuwe node aanmaken in de nameserver met de gekozen naam en het ip adres van de machine waarop hij gestart wordt.
@@ -75,7 +75,9 @@ public class Node implements NodeInterface {
         sendBootstrapBroadcast();   //jezelf broadcasten over het netwerk
         try {
             watchDir = new WatchDir(FILE_DIRECTORY, false, this);//watchdir class op FILE_DIRECTORY, niet recursief, op deze node
+            System.out.println("Watchdir aangemaakt");
         } catch (IOException e) {
+            System.out.println("Watchdir niet aangemaakt");
             e.printStackTrace();
         }
     }
@@ -210,7 +212,7 @@ public class Node implements NodeInterface {
     {
         System.out.println("bestand met naam " + entry.getFileName() + " wordt naar mij gerepliceerd...");
         String name = entry.getFileName();
-        if (localFiles.get(name).equals(null)) //als het bestand nog niet lokaal bestaat
+        if (!localFiles.containsKey(name)) //als het bestand nog niet lokaal bestaat
         {
             if (!entry.getLocalIsOwner())
                 entry.setOwner(location);
@@ -480,7 +482,7 @@ public class Node implements NodeInterface {
             DataOutputStream dataOutputStream = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
             dataOutputStream.writeUTF("receive");
             dataOutputStream.writeUTF(filename);
-            FileInputStream fileInputStream = new FileInputStream(FILE_DIRECTORY + filename);
+            FileInputStream fileInputStream = new FileInputStream("."+File.separator + FILE_DIRECTORY +File.separator+ filename);
             byte[] bytes = new byte[8192];
             int count;
             while ((count = fileInputStream.read(bytes)) > 0) {
@@ -620,17 +622,20 @@ public class Node implements NodeInterface {
                 try {
                     String owner = nameServer.getOwner(fileName);//bij fileserver opvragen op welke node dit bestand gerepliceerd moet worden IP krijgen we terug
                     FileEntry fileEntry = new FileEntry(fileName, location, owner, owner);
+                    localFiles.put(fileName, fileEntry);
                     NodeInterface nodeInterface = getNode(owner);
                     nodeInterface.replicateNewFile(fileEntry);
                     if(!owner.equals(location)){
                         System.out.println("bestand verzenden aanroepen");
                         sendFile(owner, fileName);
+                        System.out.println("bestand is verzonden naar replicated");
                     }
                     else{
                         System.out.println("bestand verzenden aanroepen");
                         sendFile(previousNode, fileName);
+                        System.out.println("bestand is verzonden naar previous node");
                     }
-                    System.out.println("bestand is verzonden");
+
                 } catch (RemoteException e) {
                     e.printStackTrace();
                 }

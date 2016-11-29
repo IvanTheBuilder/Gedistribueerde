@@ -1,19 +1,20 @@
 package lab.distributed;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.ArrayList;
 
 /**
  * Een bestandsfiche van een bestand
  * Created by Robrecht on 11/9/2016.
  */
-public class FileEntry implements Comparable<FileEntry> {
+public class FileEntry implements Comparable<FileEntry>, Serializable {
     private String owner;
     private String replicated;
     private String local;
     private String fileName;
     private Integer hash;
-    private Boolean localIsOwner; //dit moet false gezet worden wanneer er een nieuwe node in het netwerk komt en dit niet meer klopt!!!
+    private boolean localIsOwner = false; //dit moet false gezet worden wanneer er een nieuwe node in het netwerk komt en dit niet meer klopt!!!
     private ArrayList<String> downloadLocations; // dit is een lijst van ips van de downloadlocaties
 
     public FileEntry(String name, String local, String owner, String replicated){

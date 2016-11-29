@@ -40,6 +40,7 @@ public class WatchDir{
             System.out.println("Done.");
         } else {
             register(dir);
+            System.out.println("niet recursive watchdir gestart");
         }
 
         // enable trace after initial registration
@@ -68,6 +69,7 @@ public class WatchDir{
             }
         }
         keys.put(key, dir);
+        System.out.println("path registered");
     }
 
     /**
@@ -93,6 +95,7 @@ public class WatchDir{
         new Thread(new Runnable() {
             @Override
             public void run() {
+                System.out.println("processing events");
                 for (; ; ) {
 
                     // wait for key to be signalled
