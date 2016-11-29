@@ -45,6 +45,8 @@ public class Node implements NodeInterface {
     public Node(String name) {
         this.name = name;
         this.myHash = hashName(name);
+        localFiles = new HashMap<>();
+        replicatedFiles = new HashMap<>();
         try {   //adres van de host waarop de node gestart wordt
             location = InetAddress.getLocalHost().getHostAddress();
         } catch (UnknownHostException e) {

@@ -142,10 +142,12 @@ public class NameServer implements NameServerInterface {
                         System.out.println("Received multicast with IP " + address + " and name " + name);
                         NodeInterface node = getNode(address);
                         if (addNode(name, address)) {
+                            System.out.println("Eigen IP: "+Inet4Address.getLocalHost().getHostAddress());
                             node.setSize(Inet4Address.getLocalHost().getHostAddress(), nodeMap.size());
                             System.out.printf("Node %s from %s requested to join and was accepted.\nNew sitation: %s\n", name, address, nodeMap.toString());
                         }
                         else {
+                            System.out.println("Eigen IP: "+Inet4Address.getLocalHost().getHostAddress());
                             node.setSize(Inet4Address.getLocalHost().getHostAddress(), -1);
                             System.out.printf("Node %s from %s requested to join but was rejected due to duplicate\n", name, address);
                         }
