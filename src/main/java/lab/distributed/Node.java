@@ -206,6 +206,7 @@ public class Node implements NodeInterface {
     @Override
     public void replicateNewFile(FileEntry entry)
     {
+        System.out.println("bestand met naam " + entry.getFileName() + " wordt naar mij gerepliceerd...");
         String name = entry.getFileName();
         if (localFiles.get(name).equals(null)) //als het bestand nog niet lokaal bestaat
         {
@@ -213,18 +214,20 @@ public class Node implements NodeInterface {
                 entry.setOwner(location);
             entry.setReplicated(location);
             replicatedFiles.put(name, entry);
+            System.out.println("bestand succescol gerepliceerd");
         } else { //bestand bestaat lokaal en wordt gerepliceerd naar de vorige
             entry.setOwner(location);
             entry.setLocalIsOwner(true);
             NodeInterface node = getNode(previousNode);
+            System.out.println("bestand wordt gerepliceerd naar vorige node want het staat lokaal bij mij");
             try {
                 node.replicateNewFile(entry);
+                sendFile(previousNode,entry.getFileName());
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
         }
     }
-        //TODO: bestand zelf moet nog verzonden worden via tcp
 
     /**
      * Start de multicast listener op. Ontvang multicasts van andere nodes en worden hier behandeld
