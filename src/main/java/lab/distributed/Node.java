@@ -449,7 +449,7 @@ public class Node implements NodeInterface {
             DataOutputStream dataOutputStream = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
             dataOutputStream.writeUTF("send");
             dataOutputStream.writeUTF(filename);
-            FileOutputStream fileOutputStream = new FileOutputStream("."+File.separator+ REPLICATED_DIRECTORY + File.separator+filename);
+            FileOutputStream fileOutputStream = new FileOutputStream("."+File.separator+ REPLICATED_DIRECTORY + File.separator+filename);//TODO mogelijk is "."+file.seperator niet nodig.
             byte[] bytes = new byte[8192];
             int count;
             while ((count = dataInputStream.read(bytes)) > 0) {
@@ -480,7 +480,7 @@ public class Node implements NodeInterface {
             DataOutputStream dataOutputStream = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
             dataOutputStream.writeUTF("receive");
             dataOutputStream.writeUTF(filename);
-            FileInputStream fileInputStream = new FileInputStream("."+File.separator + pad +File.separator+ filename);
+            FileInputStream fileInputStream = new FileInputStream("."+File.separator + pad +File.separator+ filename);//TODO mogelijk is "."+file.seperator niet nodig.
             byte[] bytes = new byte[8192];
             int count;
             while ((count = fileInputStream.read(bytes)) > 0) {

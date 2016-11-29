@@ -23,6 +23,7 @@ public class WatchDir{
     private final boolean recursive;
     private boolean trace = false;
     private Node node;
+    private Path dir;
 
     /**
      * Creates a WatchService and registers the given directory
@@ -32,6 +33,7 @@ public class WatchDir{
         this.keys = new HashMap<WatchKey, Path>();
         this.recursive = recursive;
         this.node = node;
+        this.dir = dir;
 
 
         if (recursive) {
@@ -89,6 +91,19 @@ public class WatchDir{
     }
 
     /**
+     * Since there is no option to get evens for existing files, this method allows you to
+     * signal the existence of files to other classes (Node in our case)
+     */
+    private void signalExistingFiles(){
+      File[] files = dir.toFile().listFiles();
+        for (File file : files){
+            if (file.isFile()){
+                node.directoryChange(ENTRY_CREATE.name(),file.getName());
+            }
+        }
+    }
+
+    /**
      * Process all events for keys queued to the watcher
      */
     void processEvents() {
@@ -96,6 +111,16 @@ public class WatchDir{
             @Override
             public void run() {
                 System.out.println("processing events");
+                /*
+                At first run the eventsprocessor should first check the already existing files in the directory.
+                For Node the same action is taken as when a new file is created.
+                However because there is no WatchEvent (already existing isn't really an event) for exisitng files
+                the watchdir should send ENTRY_CREATE for every existing file to Node before starting to listen for events.
+                 */
+                signalExistingFiles();
+                /*
+                once this is done, the eventsprocessor can focus on events indefinitely.
+                 */
                 for (; ; ) {
 
                     // wait for key to be signalled
