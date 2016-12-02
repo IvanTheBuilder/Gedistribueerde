@@ -184,7 +184,7 @@ public class Node implements NodeInterface {
             node = getNode(fileEntry.getOwner()); //eigenaar van het bestand
             downloads=fileEntry.getDownloadLocations();
 
-            if(downloads.isEmpty()) //nog nergens gedownload geweest
+            /*if(downloads.isEmpty()) //nog nergens gedownload geweest
                 try {
                     if(!node.deleteReplicatedFile(fileEntry.getFileName()))
                         System.out.println("bestand kan niet verwijderd worden want het bestaat niet");
@@ -194,7 +194,7 @@ public class Node implements NodeInterface {
                 }
             //else
             // TODO: downloadlocaties updaten dat de lokale node weg is?
-            //Is de lokale node dan ook een downloadlocatie?
+            //Is de lokale node dan ook een downloadlocatie?*/
         }
         deleteNode(hashName(name));                     //node verwijderen uit de nameserver
         System.exit(0);                                 //systeem afsluiten
@@ -218,15 +218,18 @@ public class Node implements NodeInterface {
         String name = entry.getFileName();
         if (!localFiles.containsKey(name)) //als het bestand nog niet lokaal bestaat
         {
-            if (!entry.getLocalIsOwner())
+            if (!entry.getLocalIsOwner()) {
                 entry.setOwner(location);
+                System.out.println("local is niet de owner van " + entry.getFileName());
+            }
             entry.setReplicated(location);
             replicatedFiles.put(name, entry);
+            System.out.println("bestand met naam " + entry.getFileName() + " wordt gerepliceerd naar mij en heeft als owner: " + entry.getOwner() + " en heeft als hash " + entry.getHash());
             System.out.println("bestand succescol gerepliceerd");
         } else { //bestand bestaat lokaal en wordt gerepliceerd naar de vorige
             entry.setOwner(location);
             entry.setLocalIsOwner(true);
-            if (previousNode == myHash){
+            if (previousNode == myHash){ //maar 1 node in netwerk
                 replicatedFiles.put(name, entry);
                 System.out.println("Er zit maar 1 node in het netwerk, bestand wordt naar mezelf gerepliceerd...");
             }else {
@@ -494,7 +497,7 @@ public class Node implements NodeInterface {
             dataOutputStream.writeUTF("receive");
             dataOutputStream.writeUTF(filename);
             FileInputStream fileInputStream = new FileInputStream("."+File.separator + path +File.separator+ filename);//TODO mogelijk is "."+file.seperator niet nodig.
-            System.out.println(path);
+            //System.out.println(path);
             byte[] bytes = new byte[8192];
             int count;
             while ((count = fileInputStream.read(bytes)) > 0) {
@@ -673,8 +676,8 @@ public class Node implements NodeInterface {
             //Owner? kijk of nieuwe node owner moet worden
             Map.Entry<String, FileEntry> pair = (Map.Entry<String, FileEntry>) iterator.next();
             FileEntry valueOfEntry = pair.getValue();
-            if (valueOfEntry.getOwner().equals(location)) {
-                if (valueOfEntry.getHash() >= nextNode || previousNode == nextNode) {
+            if (valueOfEntry.getOwner().equals(location)) { //ik ben zelf de eigenaar
+                if (valueOfEntry.getHash() >= nextNode) {   //bestand moet gerepliceerd worden naar de nieuwe node
                     //de nieuwe node wordt eigenaar (=nextnode)
                     //wordt zelf downloadlocatie?
                     try {
@@ -682,6 +685,27 @@ public class Node implements NodeInterface {
                         valueOfEntry.setReplicated(nameServer.getAddress(nextNode));
                         //TODO mogelijk onderstaande lijn uit comment halen.
                         //valueOfEntry.addDownloadLocation(location); eigen IP aan downloadlocations toevoegen?
+                        NodeInterface nodeInterface = getNode(nextNode);
+                        nodeInterface.replicateNewFile(valueOfEntry);
+                        sendFile(nextNode, valueOfEntry.getFileName(),LOCAL_DIRECTORY);
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
+                } else if (previousNode ==nextNode) //maar 2 nodes in het netwerk
+                {
+                    if(valueOfEntry.getHash()<myHash)   //andere node in het netwerk krijgt het bestand gerepliceerd en wordt eigenaar
+                        try {
+                            valueOfEntry.setOwner(nameServer.getAddress(nextNode));
+                            valueOfEntry.setLocalIsOwner(false);
+                        } catch (RemoteException e) {
+                            e.printStackTrace();
+                        }
+                    else {  //ik repliceer het bestand naar de vorige node maar blijf zelf wel eigenaar want de hash van het document verwijst naar mezelf
+                        valueOfEntry.setOwner(location);
+                        valueOfEntry.setLocalIsOwner(true);
+                    }
+                    try {
+                        valueOfEntry.setReplicated(nameServer.getAddress(nextNode));
                         NodeInterface nodeInterface = getNode(nextNode);
                         nodeInterface.replicateNewFile(valueOfEntry);
                         sendFile(nextNode, valueOfEntry.getFileName(),LOCAL_DIRECTORY);
@@ -700,7 +724,7 @@ public class Node implements NodeInterface {
             //Owner?
             if (valueOfEntry.getOwner().equals(location)) {
                 //kijk of nieuwe node beter geschikt is voor bestanden te repliceren
-                if (valueOfEntry.getHash() >= nextNode || previousNode == nextNode) {
+                if (valueOfEntry.getHash() >= nextNode) {
                     //de nieuwe node wordt eigenaar (=nextnode)
                     //wordt zelf downloadlocatie
                     try {
@@ -716,7 +740,7 @@ public class Node implements NodeInterface {
                 }
             } else {
                 //Geen Owner?
-                if (valueOfEntry.getHash() >= nextNode || previousNode == nextNode) {
+                if (valueOfEntry.getHash() >= nextNode) {
                     //repliceer naar volgende node, maar deze wordt geen eigenaar.
                     //Wordt zelf downloadlocatie.
                     try {

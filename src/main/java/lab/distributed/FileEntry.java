@@ -56,7 +56,7 @@ public class FileEntry implements Comparable<FileEntry>, Serializable {
         return hash;
     }
 
-    public Boolean getLocalIsOwner() {
+    public boolean getLocalIsOwner() {
         return localIsOwner;
     }
 
