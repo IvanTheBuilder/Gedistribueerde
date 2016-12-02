@@ -60,7 +60,7 @@ public class FileEntry implements Comparable<FileEntry>, Serializable {
         return localIsOwner;
     }
 
-    public void setLocalIsOwner(Boolean localIsOwner) {
+    public void setLocalIsOwner(boolean localIsOwner) {
         this.localIsOwner = localIsOwner;
     }
 
