@@ -272,6 +272,7 @@ public class Node implements NodeInterface {
                             node.setNextNode(myHash);
                             node.setPreviousNode(myHash);
                             System.out.println("A second node has joined. I've set my previous and next node to him and updated him.");
+                            checkOwnedFilesOnDiscovery();
                         }
                         /**
                          * Hierna gaan we na of de node tussen ons en één van onze buren ligt
@@ -301,7 +302,7 @@ public class Node implements NodeInterface {
                              * over zijn nieuwe buren informeren. Ik pas enkel mijn vorige node aan.
                              */
                             System.out.printf("A node (%d) joined between my previous neighbour (%d) and me. Updating accordingly...\nWelcome %s!\n", hash, previousNode, name);
-                            previousNode = hash;
+                            previousNode+++ = hash;
                         } else if (hash == myHash) {
                             System.out.printf("I joined the network.\n");
                         } else {
@@ -673,7 +674,7 @@ public class Node implements NodeInterface {
             Map.Entry<String, FileEntry> pair = (Map.Entry<String, FileEntry>) iterator.next();
             FileEntry valueOfEntry = pair.getValue();
             if (valueOfEntry.getOwner().equals(location)) {
-                if (valueOfEntry.getHash() > nextNode) {
+                if (valueOfEntry.getHash() >= nextNode) {
                     //de nieuwe node wordt eigenaar (=nextnode)
                     //wordt zelf downloadlocatie?
                     try {
@@ -699,7 +700,7 @@ public class Node implements NodeInterface {
             //Owner?
             if (valueOfEntry.getOwner().equals(location)) {
                 //kijk of nieuwe node beter geschikt is voor bestanden te repliceren
-                if (valueOfEntry.getHash() > nextNode) {
+                if (valueOfEntry.getHash() >= nextNode) {
                     //de nieuwe node wordt eigenaar (=nextnode)
                     //wordt zelf downloadlocatie
                     try {
@@ -715,7 +716,7 @@ public class Node implements NodeInterface {
                 }
             } else {
                 //Geen Owner?
-                if (valueOfEntry.getHash() > nextNode) {
+                if (valueOfEntry.getHash() >= nextNode) {
                     //repliceer naar volgende node, maar deze wordt geen eigenaar.
                     //Wordt zelf downloadlocatie.
                     try {
