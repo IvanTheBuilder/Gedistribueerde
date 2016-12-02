@@ -681,7 +681,11 @@ public class Node implements NodeInterface {
                     //de nieuwe node wordt eigenaar (=nextnode)
                     //wordt zelf downloadlocatie?
                     try {
-                        valueOfEntry.setOwner(nameServer.getAddress(nextNode));
+                        if(valueOfEntry.getHash()>myHash && myHash < nextNode && previousNode == nextNode){
+                            valueOfEntry.setOwner(location);
+                        }else {
+                            valueOfEntry.setOwner(nameServer.getAddress(nextNode));
+                        }
                         valueOfEntry.setReplicated(nameServer.getAddress(nextNode));
                         //TODO mogelijk onderstaande lijn uit comment halen.
                         //valueOfEntry.addDownloadLocation(location); eigen IP aan downloadlocations toevoegen?
@@ -728,7 +732,11 @@ public class Node implements NodeInterface {
                     //de nieuwe node wordt eigenaar (=nextnode)
                     //wordt zelf downloadlocatie
                     try {
-                        valueOfEntry.setOwner(nameServer.getAddress(nextNode));
+                        if(valueOfEntry.getHash()>myHash && myHash < nextNode && previousNode == nextNode){
+                            valueOfEntry.setOwner(location);
+                        }else {
+                            valueOfEntry.setOwner(nameServer.getAddress(nextNode));
+                        }
                         valueOfEntry.setReplicated(nameServer.getAddress(nextNode));
                         valueOfEntry.addDownloadLocation(location);
                         NodeInterface nodeInterface = getNode(nextNode);
@@ -744,7 +752,11 @@ public class Node implements NodeInterface {
                     //repliceer naar volgende node, maar deze wordt geen eigenaar.
                     //Wordt zelf downloadlocatie.
                     try {
-                        valueOfEntry.setReplicated(nameServer.getAddress(nextNode));
+                        if(valueOfEntry.getHash()>myHash && myHash < nextNode && previousNode == nextNode){
+                            valueOfEntry.setOwner(location);
+                        }else {
+                            valueOfEntry.setOwner(nameServer.getAddress(nextNode));
+                        }
                         valueOfEntry.addDownloadLocation(location);
                         NodeInterface nodeInterface = getNode(nextNode);
                         nodeInterface.replicateNewFile(valueOfEntry);
