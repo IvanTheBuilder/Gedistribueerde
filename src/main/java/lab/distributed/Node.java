@@ -72,6 +72,12 @@ public class Node implements NodeInterface {
         }
         sendBootstrapBroadcast();   //jezelf broadcasten over het netwerk
         try {
+            while(nameServer == null)
+            Thread.sleep(100); // Send bootstrapbroadcast half a second after fileserver startup to prevent deadlock.
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        try {
             watchDir = new WatchDir(LOCAL_DIRECTORY, false, this);//watchdir class op LOCAL_DIRECTORY, niet recursief, op deze node
             System.out.println("Watchdir aangemaakt");
         } catch (IOException e) {
@@ -481,6 +487,7 @@ public class Node implements NodeInterface {
             dataOutputStream.writeUTF("receive");
             dataOutputStream.writeUTF(filename);
             FileInputStream fileInputStream = new FileInputStream("."+File.separator + pad +File.separator+ filename);//TODO mogelijk is "."+file.seperator niet nodig.
+            System.out.println(pad);
             byte[] bytes = new byte[8192];
             int count;
             while ((count = fileInputStream.read(bytes)) > 0) {
