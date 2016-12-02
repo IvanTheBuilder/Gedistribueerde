@@ -25,9 +25,9 @@ public class NameServer implements NameServerInterface {
     /**
      * Multicast Config
      */
-    public static final String GROUP = "225.1.2.3";
-    public static final int MULTICAST_PORT = 12345;
-    public static final int COMMUNICATIONS_PORT = 4000;
+    private static final String GROUP = "225.1.2.3";
+    private static final int MULTICAST_PORT = 12345;
+    private static final int COMMUNICATIONS_PORT = 4000;
     @XmlElement(name = "nodemap")
     TreeMap<Integer, String> nodeMap = new TreeMap<>();
 
