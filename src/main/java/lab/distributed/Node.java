@@ -228,17 +228,17 @@ public class Node implements NodeInterface {
             entry.setLocalIsOwner(true);
             if (previousNode == myHash){
                 replicatedFiles.put(name, entry);
-                sendFile(myHash, entry.getFileName(), REPLICATED_DIRECTORY);
+                System.out.println("Er zit maar 1 node in het netwerk, bestand wordt naar mezelf gerepliceerd...");
             }else {
                 NodeInterface node = getNode(previousNode);
                 System.out.println("bestand wordt gerepliceerd naar vorige node want het staat lokaal bij mij");
                 try {
                     node.replicateNewFile(entry);
-                    sendFile(previousNode, entry.getFileName(), LOCAL_DIRECTORY);
                 } catch (RemoteException e) {
                     e.printStackTrace();
                 }
             }
+            sendFile(previousNode, entry.getFileName(), LOCAL_DIRECTORY);
         }
     }
 
@@ -482,17 +482,18 @@ public class Node implements NodeInterface {
      * destination ook in deze map geplaatst worden.
      * @param address ip adres van de node
      * @param filename bestandsnaam
+     * @param path pad naar de directory waar het bestand nu staat
      * @return  Of dat de server het bestand successvol heeft ontvangen
      */
-    public boolean sendFile(String address, String filename, Path pad) {
+    public boolean sendFile(String address, String filename, Path path) {
         try {
             Socket socket = new Socket(address, FILESERVER_PORT);
             DataInputStream dataInputStream = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
             DataOutputStream dataOutputStream = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
             dataOutputStream.writeUTF("receive");
             dataOutputStream.writeUTF(filename);
-            FileInputStream fileInputStream = new FileInputStream("."+File.separator + pad +File.separator+ filename);//TODO mogelijk is "."+file.seperator niet nodig.
-            System.out.println(pad);
+            FileInputStream fileInputStream = new FileInputStream("."+File.separator + path +File.separator+ filename);//TODO mogelijk is "."+file.seperator niet nodig.
+            System.out.println(path);
             byte[] bytes = new byte[8192];
             int count;
             while ((count = fileInputStream.read(bytes)) > 0) {
