@@ -226,13 +226,18 @@ public class Node implements NodeInterface {
         } else { //bestand bestaat lokaal en wordt gerepliceerd naar de vorige
             entry.setOwner(location);
             entry.setLocalIsOwner(true);
-            NodeInterface node = getNode(previousNode);
-            System.out.println("bestand wordt gerepliceerd naar vorige node want het staat lokaal bij mij");
-            try {
-                node.replicateNewFile(entry);
-                sendFile(previousNode,entry.getFileName(),LOCAL_DIRECTORY);
-            } catch (RemoteException e) {
-                e.printStackTrace();
+            if (previousNode == myHash){
+                replicatedFiles.put(name, entry);
+                sendFile(myHash, entry.getFileName(), REPLICATED_DIRECTORY);
+            }else {
+                NodeInterface node = getNode(previousNode);
+                System.out.println("bestand wordt gerepliceerd naar vorige node want het staat lokaal bij mij");
+                try {
+                    node.replicateNewFile(entry);
+                    sendFile(previousNode, entry.getFileName(), LOCAL_DIRECTORY);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
