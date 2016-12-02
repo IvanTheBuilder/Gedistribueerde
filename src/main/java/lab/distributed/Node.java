@@ -73,7 +73,7 @@ public class Node implements NodeInterface {
         sendBootstrapBroadcast();   //jezelf broadcasten over het netwerk
         try {
             while(nameServer == null)
-            Thread.sleep(100); // Send bootstrapbroadcast half a second after fileserver startup to prevent deadlock.
+            Thread.sleep(100); // zolang nameserver null is nog geen watchdir starte.
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
