@@ -196,6 +196,7 @@ public class Node implements NodeInterface {
             // TODO: downloadlocaties updaten dat de lokale node weg is?
             //Is de lokale node dan ook een downloadlocatie?*/
         }
+        //TODO: Ivan: laatste bestanden worden niet verzonden bij een exit, methode replicatenewfile wordt wel aangeroepen maar het bestand zelf wordt niet verzonden over tcp
         deleteNode(hashName(name));                     //node verwijderen uit de nameserver
         System.exit(0);                                 //systeem afsluiten
     }
