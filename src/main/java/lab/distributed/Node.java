@@ -18,11 +18,11 @@ import java.util.*;
  */
 public class Node implements NodeInterface {
 
-    public static final String GROUP = "225.1.2.3"; //multicast groep
-    public static final int MULTICAST_PORT = 12345;
-    public static final int FILESERVER_PORT = 4001;
-    public static final int COMMUNICATIONS_PORT = 4000;
-    public static final int PING_PORT = 9000;
+    private static final String GROUP = "225.1.2.3"; //multicast groep
+    private static final int MULTICAST_PORT = 12345;
+    private static final int FILESERVER_PORT = 4001;
+    private static final int COMMUNICATIONS_PORT = 4000;
+    private static final int PING_PORT = 9000;
     private String name;                            //naam van de node
     private int myHash;                             //hash van de node
     private String location;                        //ip adres van de node   
