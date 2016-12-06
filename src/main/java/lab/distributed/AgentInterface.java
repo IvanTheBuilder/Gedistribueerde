@@ -3,21 +3,21 @@ package lab.distributed;
 /**
  * Created by Joost on 6/12/2016.
  */
-public interface Agent extends Runnable {
+public interface AgentInterface extends Runnable {
 
     /**
-     * Interface voor de Agent
+     * Interface voor de AgentInterface
      */
 
     /**
      * Run methode voor de thread.
-     * Implementatie afhankelijk van type Agent.
+     * Implementatie afhankelijk van type AgentInterface.
      */
     @Override
     void run();
 
     /**
-     * Om de huidige node in te stellen op de Agent.
+     * Om de huidige node in te stellen op de AgentInterface.
      * @param node de node waarop de agent zich momenteel bevindt.
      */
     void setCurrentNode(Node node);
