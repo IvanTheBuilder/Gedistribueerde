@@ -365,13 +365,13 @@ public class Node implements NodeInterface {
      */
     private void failure(int hash) {
         try {
+            System.out.println("Detected failure from "+hash+".");
             int nextNode = nameServer.getNextNode(hash);
             int previousNode = nameServer.getPreviousNode(hash);
-
             getNode(previousNode).setNextNode(nextNode);//naar de previous node het id van de next node sturen
             getNode(nextNode).setPreviousNode(previousNode);//naar de next node het id van de previous node sturen
-
             deleteNode(hash);                                 //node verwijderen
+            //TODO: start failure agent.
         } catch (RemoteException e) {
             e.printStackTrace();
         }
@@ -664,7 +664,8 @@ public class Node implements NodeInterface {
                     }
 
                 } catch (RemoteException e) {
-                    e.printStackTrace();
+                    System.out.println("RMI Exception bij replicatie. Node wordt beschouwd als gefaalt.");
+                    failure(nameServer.getOwnerHash(fileName));
                 }
                 break;
             case "ENTRY_DELETE":

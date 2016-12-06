@@ -108,6 +108,21 @@ public class NameServer implements NameServerInterface {
         else return null;
     }
 
+    @Override
+    public int getOwnerHash(String filename) {
+        int fileHash = hashName(filename);
+        int closest = -1;
+        for (Integer integer : nodeMap.keySet()) {
+            if (integer > closest && integer < fileHash) {
+                closest = integer;
+            } else
+                return closest == -1 ? nodeMap.lastKey() : closest;
+        }
+        if (closest != -1)
+            return closest;
+        else return -1;
+    }
+
     /**
      * slaag de nameserver op op de schijf
      */

@@ -34,6 +34,8 @@ public interface NameServerInterface extends Remote {
      */
     boolean removeNode(int nodeName) throws RemoteException;
 
+    int getOwnerHash(String filename);
+
     /**
      * Vraag het IP op van een node.
      *
