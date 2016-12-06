@@ -16,16 +16,19 @@ public class FileServer {
     DataOutputStream out;
 
     public FileServer(int port) {
-
-            new Thread(new Runnable() {
+        try {
+            serverSocket = new ServerSocket(port);
+        } catch (IOException e) {
+            System.out.println("Failed to start fileserver, aborting...");
+            System.exit(1);
+        }
+        new Thread(new Runnable() {
                 @Override
                 public void run() {
                     try {
-                        serverSocket = new ServerSocket(port);
-                        System.out.println("Filesocket opened.");
                         while(true) {
                             Socket clientSocket = serverSocket.accept();
-                            System.out.println("Fileserver ready for new connection.");
+                            System.out.println("[Fileserver] Ready for new connection.");
                             DataInputStream in = new DataInputStream(new BufferedInputStream(clientSocket.getInputStream()));
                             DataOutputStream out = new DataOutputStream(new BufferedOutputStream(clientSocket.getOutputStream()));
                             String command = in.readUTF();
@@ -33,7 +36,7 @@ public class FileServer {
                             if(command.equalsIgnoreCase("send")) {
                                 File file = getFile(fileName);
                                 if(file.exists()) {
-                                    System.out.printf("File %s found. Starting filetransfer...\n", fileName);
+                                    System.out.printf("[Fileserver] File %s found. Starting filetransfer...\n", fileName);
                                     InputStream fileStream = new FileInputStream(file);
                                     int count;
                                     byte[] bytes = new byte[8192];
@@ -43,7 +46,7 @@ public class FileServer {
                                     clientSocket.close();
                                 } else {
                                     // Indien we het bestand niet hebben, breek de verbinding af.
-                                    System.out.printf("File %s not found. Closing connection...\n", fileName);
+                                    System.out.printf("[Fileserver] File %s not found. Closing connection...\n", fileName);
                                     in.close();
                                     out.close();
                                     clientSocket.close();

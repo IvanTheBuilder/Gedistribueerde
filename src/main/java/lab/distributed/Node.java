@@ -52,38 +52,12 @@ public class Node implements NodeInterface {
         }
 
         startMulticastListener();
-        try {
-            Thread.sleep(500); // Start TCP socket half a second after multicast listener to prevent deadlock.
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        System.out.println("Multicast listener ✓");
         startRMI();
-        try {
-            Thread.sleep(500); // Start file server half a second after RMI to prevent deadlock.
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        System.out.println("RMI ✓");
         fileServer = new FileServer(FILESERVER_PORT); //fileserver wordt opgestart
-
-        try {
-            Thread.sleep(500); // Send bootstrapbroadcast half a second after fileserver startup to prevent deadlock.
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        System.out.println("Fileserver ✓");
         sendBootstrapBroadcast();   //jezelf broadcasten over het netwerk
-        try {
-            while(nameServer == null)
-            Thread.sleep(100); // zolang nameserver null is nog geen watchdir starte.
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        try {
-            watchDir = new WatchDir(LOCAL_DIRECTORY, false, this);//watchdir class op LOCAL_DIRECTORY, niet recursief, op deze node
-            System.out.println("Watchdir aangemaakt");
-        } catch (IOException e) {
-            System.out.println("Watchdir niet aangemaakt");
-            e.printStackTrace();
-        }
     }
 
     /**
@@ -108,7 +82,8 @@ public class Node implements NodeInterface {
             System.arraycopy(nameData, 0, message, addressData.length, nameData.length);
             sendMulticast(message);
         } catch (UnknownHostException e) {
-            e.printStackTrace();
+            System.out.println("Failed to send bootstrap broadcast. Aborting...");
+            System.exit(1);
         }
     }
 
@@ -250,16 +225,27 @@ public class Node implements NodeInterface {
      * Start de multicast listener op. Ontvang multicasts van andere nodes en worden hier behandeld
      */
     private void startMulticastListener() {
+        MulticastSocket multicastSocket = null;
+        try {
+            multicastSocket = new MulticastSocket(MULTICAST_PORT);
+            multicastSocket.joinGroup(InetAddress.getByName(GROUP));
+        } catch (IOException e) {
+            System.out.println("Failed to start multicast, perhaps already running...? Aborting...");
+            System.exit(1);
+        }
+
+        /**
+         * Finalize socket so thread is willing to use it.
+         */
+        final MulticastSocket finalMulticastSocket = multicastSocket;
         new Thread(new Runnable() {
             public void run() {
                 int hash = 0;
                 try {
-                    MulticastSocket multicastSocket = new MulticastSocket(MULTICAST_PORT);
-                    multicastSocket.joinGroup(InetAddress.getByName(GROUP));
                     while (true) {
                         byte[] buf = new byte[256];
                         DatagramPacket datagramPacket = new DatagramPacket(buf, buf.length);
-                        multicastSocket.receive(datagramPacket);
+                        finalMulticastSocket.receive(datagramPacket);
                         byte[] byteAddress = Arrays.copyOfRange(buf, 0, 4);
                         String address = InetAddress.getByAddress(byteAddress).getHostAddress();
                         String name = new String(Arrays.copyOfRange(buf, 4, 255)).trim();
@@ -344,16 +330,32 @@ public class Node implements NodeInterface {
     @Override
     public void setPreviousNode(int hash) {
         this.previousNode = hash;
+        checkWatchDir();
     }
 
     @Override
     public void setNextNode(int hash) {
         this.nextNode = hash;
+        checkWatchDir();
     }
 
     @Override
     public void printMessage(String message) throws RemoteException {
         System.out.println(message);
+    }
+
+    public void checkWatchDir() {
+        if(previousNode != -1 && nextNode != -1 && nameServer != null && watchDir == null) {
+            System.out.println("Received both nodes and discovered nameserver, starting Watchdir...");
+            try {
+                watchDir = new WatchDir(LOCAL_DIRECTORY, false, this);//watchdir class op LOCAL_DIRECTORY, niet recursief, op deze node
+            } catch (IOException e) {
+                System.out.println("Failed to start watchdir, aborting...");
+                //TODO: exit oproepen zodat nameserver ons ziet weggaan
+                System.exit(1);
+            }
+            System.out.println("Watchdir ✓");
+        }
     }
 
     /**
@@ -604,9 +606,18 @@ public class Node implements NodeInterface {
                 System.out.println("I'm the first node. I'm also the previous and next node. ");
                 previousNode = myHash;
                 nextNode = myHash;
+                try {
+                    watchDir = new WatchDir(LOCAL_DIRECTORY, false, this);//watchdir class op LOCAL_DIRECTORY, niet recursief, op deze node
+                } catch (IOException e) {
+                    System.out.println("Failed to start watchdir, aborting...");
+                    //TODO: exit oproepen zodat nameserver ons ziet weggaan
+                    System.exit(1);
+                }
+                System.out.println("Watchdir ✓");
             } else {
                 System.out.printf("I'm not the first node (size is %d). Waiting for my next and previous node...\n", size);
             }
+            checkWatchDir();
         }
     }
 
