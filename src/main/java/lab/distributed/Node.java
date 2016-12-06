@@ -523,6 +523,7 @@ public class Node implements NodeInterface {
      * @param entry de nieuwe entry
      * @return true als het bestand bestaat, false als het niet bestaat
      */
+    @Override
     public boolean changeLocalEntry(String name, FileEntry entry) throws RemoteException
     {
         if(localFiles.get(name) != null)
@@ -540,6 +541,7 @@ public class Node implements NodeInterface {
      * @param entry de nieuwe entry
      * @return true als het bestand bestaat, false als het niet bestaat
      */
+    @Override
     public boolean changeReplicatedEntry(String name, FileEntry entry) throws RemoteException
     {
         if(replicatedFiles.get(name) != null)
@@ -781,5 +783,9 @@ public class Node implements NodeInterface {
 
 
         }
+    }
+
+    public int getMyHash(){
+        return myHash;
     }
 }
