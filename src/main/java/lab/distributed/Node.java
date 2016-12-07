@@ -394,13 +394,20 @@ public class Node implements NodeInterface {
     public void failure(int hash) {
         try {
             System.out.println("Detected failure from "+hash+".");
+            RecoveryAgent agent = null;
+            if(hash == previousNode) {
+                agent = new RecoveryAgent(hash, this, true);
+            }
+            else
+            {
+                agent = new RecoveryAgent(hash, this, true);
+            }
             int nextNode = nameServer.getNextNode(hash);
             int previousNode = nameServer.getPreviousNode(hash);
             getNode(previousNode).setNextNode(nextNode);//naar de previous node het id van de next node sturen
             getNode(nextNode).setPreviousNode(previousNode);//naar de next node het id van de previous node sturen
             deleteNode(hash);                                 //node verwijderen
-            //TODO: start failure agent.
-            //startAgent(new RecoveryAgent(hash,this));
+            startAgent(agent);
         } catch (RemoteException e) {
             e.printStackTrace();
         }
@@ -831,13 +838,13 @@ public class Node implements NodeInterface {
                     t.join();                   //wachten tot de agent klaar is met lopen
                 } catch (InterruptedException e) {
                     e.printStackTrace();
-                }/*
+                }
                 try {
                     if(!agent.isFinished())
                         getNode(nextNode).startAgent(agent);//agent starten op de volgende Node
                 } catch (RemoteException e) {
                     e.printStackTrace();
-                }*/
+                }
             }
         }
         Thread t = new Thread(new Temp(this));
@@ -933,18 +940,21 @@ public class Node implements NodeInterface {
         return this.nextNode;
     }
 
-
-
-
+    /**
+     * deze methode geeft een bestand terug dat ergens in het netwerk staat
+     * @param filename de naam van het bestand dat moet opgezocht worden
+     * @return het bestand
+     */
     public File displayFile(String filename)
     {
-        if(lockedFiles.contains(filename))
-        {
+        while(!lockedFiles.contains(filename)) {} //wacht tot bestand aan ons gegeven wordt
+        requestFileLock(filename);
+        NodeInterface node = null;
+        ArrayList<String> downloadLocations = null;
             try {
                 String owner = nameServer.getOwner(filename);
-                NodeInterface node = getNode(owner);
+                node = getNode(owner);
                 HashMap<String, FileEntry> files = node.getReplicatedFiles();
-                ArrayList<String> downloadLocations = null;
                 if(files.containsKey(filename)) {
                     downloadLocations = files.get(filename).getDownloadLocations();
                 } else {
@@ -958,15 +968,13 @@ public class Node implements NodeInterface {
                 }
                 Random rand = new Random();
                 String IP = downloadLocations.get(rand.nextInt(downloadLocations.size()));
-                node = getNode(IP);
-                //bestand downloaden van node
+                requestFile(IP,filename);
+                //TODO: file moet uit bestand gedisplayed worden
                 releaseFileLock(filename);
                 return null;//gedownloade file
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
-        }else
-            return null;//wachten tot bestand wordt vrijgegeven
         return null;
     }
 

@@ -16,6 +16,11 @@ public class FileAgent implements AgentInterface, Serializable {
     private HashMap<String, Integer> lockedFilesMap = new HashMap<>();
     private Node currentNode;
 
+    @Override
+    public boolean isFinished() {
+        return false;
+    }
+
     /**
      * Deze methode gaat per node na of er nieuwe bestanden beschikbaar zijn. Zoja zullen deze
      * worden toegevoegd aan een lijst. Elke node bezit een kopie van deze lijst en kan een
