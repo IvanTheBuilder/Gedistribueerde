@@ -91,9 +91,15 @@ public class FileAgent implements AgentInterface,Serializable {
                 }
             }
 
-            HashMap<String,Boolean> newFileList = currentNodeFileList;
+            /*
+            We geven een nieuwe lijst door aan de node. Als de huidige node een lock heeft op een
+            bestand dan laten we deze flag staan in de nieuwe lijst door te controleren of de
+            hash van de eigenaar van een lock gelijk is aan die van de huidige node en deze
+            boolean waarde in de nieuwe lijst te zetten.
+             */
+            HashMap<String,Boolean> newFileList = new HashMap<>();
             for (Map.Entry<String,Integer> entry : lockedFilesMap.entrySet()) {
-                newFileList.replace(entry.getKey(),entry.getValue() == currentNode.getMyHash());
+                newFileList.put(entry.getKey(),entry.getValue() == currentNode.getMyHash());
             }
             currentNode.setFileList(newFileList);
         }
