@@ -70,4 +70,11 @@ public interface NodeInterface extends Remote {
      */
     boolean deleteReplicatedFile(String naam) throws RemoteException;
 
+    /**
+     * Deze methode zal de agent op deze node opstarten en de agent op de volgende node starten wanneer hij hier klaar is.
+     * @param agent de agent die gestart moet worden
+     * @throws RemoteException
+     */
+    void startAgent(AgentInterface agent) throws RemoteException;
+
 }

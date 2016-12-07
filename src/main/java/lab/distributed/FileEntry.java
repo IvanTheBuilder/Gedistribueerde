@@ -23,12 +23,24 @@ public class FileEntry implements Comparable<FileEntry>, Serializable {
         this.local=local;
         this.owner=owner;
         this.replicated=replicated;
-        this.downloadLocations = null;
+        this.downloadLocations = new ArrayList<String>();
+        if(replicated!=null)
+            downloadLocations.add(replicated);
     }
 
     public void addDownloadLocation(String IP)
     {
         downloadLocations.add(IP);
+    }
+
+    public boolean removeDownloadLocation(String IP)
+    {
+        if(downloadLocations.contains(IP))
+        {
+            downloadLocations.remove(IP);
+            return true;
+        }else
+            return false;
     }
 
     public ArrayList<String> getDownloadLocations()

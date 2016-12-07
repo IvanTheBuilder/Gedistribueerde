@@ -1,5 +1,7 @@
 package lab.distributed;
 
+import sun.management.resources.agent;
+
 import java.io.*;
 import java.net.*;
 import java.nio.file.Path;
@@ -34,6 +36,7 @@ public class Node implements NodeInterface {
     private WatchDir watchDir;
     private static final Path LOCAL_DIRECTORY = Paths.get("local");
     private static final Path REPLICATED_DIRECTORY = Paths.get("replicated");
+    private HashMap<String,Boolean> fileList;
 
     /**
      * De constructor gaat een nieuwe node aanmaken in de nameserver met de gekozen naam en het ip adres van de machine waarop hij gestart wordt.
@@ -179,8 +182,11 @@ public class Node implements NodeInterface {
     @Override
     public boolean deleteReplicatedFile(String naam) throws RemoteException
     {
-        if(replicatedFiles.get(naam)!=null) {
+        if(replicatedFiles.containsKey(naam)) {
+            FileEntry entry = replicatedFiles.get(naam);
+            entry.removeDownloadLocation(location);
             replicatedFiles.remove(naam);
+            updateEntryAllNodes(entry);
             //TODO: verwijderen van harde schijf
             return true;
         }else
@@ -199,6 +205,7 @@ public class Node implements NodeInterface {
                 System.out.println("local is niet de owner van " + entry.getFileName());
             }
             entry.setReplicated(location);
+            entry.addDownloadLocation(location);
             replicatedFiles.put(name, entry);
             System.out.println("bestand met naam " + entry.getFileName() + " wordt gerepliceerd naar mij en heeft als owner: " + entry.getOwner() + " en heeft als hash " + entry.getHash());
             System.out.println("bestand succescol gerepliceerd");
@@ -218,7 +225,7 @@ public class Node implements NodeInterface {
                 }
             }
             sendFile(previousNode, entry.getFileName(), LOCAL_DIRECTORY);
-        }
+        }updateEntryAllNodes(entry);
     }
 
     /**
@@ -372,6 +379,7 @@ public class Node implements NodeInterface {
             getNode(nextNode).setPreviousNode(previousNode);//naar de next node het id van de previous node sturen
 
             deleteNode(hash);                                 //node verwijderen
+            //startAgent(new RecoveryAgent(hash,this));
         } catch (RemoteException e) {
             e.printStackTrace();
         }
@@ -608,6 +616,7 @@ public class Node implements NodeInterface {
                 System.out.println("I'm the first node. I'm also the previous and next node. ");
                 previousNode = myHash;
                 nextNode = myHash;
+                //getNode(nextNode).startAgent(new FileAgent());
                 try {
                     watchDir = new WatchDir(LOCAL_DIRECTORY, false, this);//watchdir class op LOCAL_DIRECTORY, niet recursief, op deze node
                 } catch (IOException e) {
@@ -788,4 +797,83 @@ public class Node implements NodeInterface {
     public int getMyHash(){
         return myHash;
     }
+
+    @Override
+    public void startAgent(AgentInterface agent)
+    {
+        class Temp implements Runnable {
+            Node node;
+            Temp(Node node) {this.node=node;}
+            public void run() {
+                agent.setCurrentNode(node);     //huidige node instellen bij de agent
+                Thread t = new Thread(agent);   //nieuwe thread opstarten waar de agent in loopt
+                t.start();
+                try {
+                    t.join();                   //wachten tot de agent klaar is met lopen
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    getNode(nextNode).startAgent(agent);//agent starten op de volgende Node
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        Thread t = new Thread(new Temp(this));
+        t.start();
+    }
+
+    public HashMap getFileList()
+    {
+        return fileList;
+    }
+
+    public void setFileList(HashMap<String,Boolean> list)
+    {
+        fileList = list;
+    }
+
+    /**
+     * deze methode zorgt voor het aanvragen van een lock op een bestand
+     * @param filename de bestandsnaam waarop de lock moet aangevraagd worden
+     * @return true als de actie succescol was, false als de bestandsnaam niet bestaat
+     */
+    public boolean requestFileLock(String filename)
+    {
+        if(fileList.containsKey(filename)) {
+            fileList.put(filename, true);
+            return true;
+        }else
+            return false;
+    }
+
+    /**
+     * roep deze methode aan om een entry aan te passen op alle nodes waar ze aanwezig is
+     * @param entry de aangepaste entry
+     */
+    private void updateEntryAllNodes(FileEntry entry)
+    {
+        String naam = entry.getFileName();
+        for(String IP: entry.getDownloadLocations()) {
+            try {
+                if (getNode(IP).changeReplicatedEntry(naam, entry))
+                    System.out.println("replicated entry " + naam + " is aangepast op node " + IP);
+                else
+                    System.out.println("ERROR: replicated entry " + naam + " bestaat niet op node " + IP);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+        }
+        String IP=entry.getLocal();
+        try {
+            if(getNode(IP).changeLocalEntry(naam,entry))
+                System.out.println("local entry " + naam + " is aangepast op node " + IP);
+            else
+                System.out.println("ERROR: local entry " + naam + " bestaat niet op node " + IP);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+    }
+
 }
