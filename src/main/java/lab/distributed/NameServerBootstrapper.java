@@ -31,15 +31,16 @@ public class NameServerBootstrapper {
         }
     }
 
-    public static void startRMIRegistry() {
+    public static Process startRMIRegistry() {
         String javaHome = System.getProperty("java.home");
         ProcessBuilder processBuilder = new ProcessBuilder(javaHome+ File.separator+"bin"+File.separator+"rmiregistry.exe");
         processBuilder.directory(new File("./target/classes"));
         try {
-            processBuilder.start();
+           return processBuilder.start();
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return null;
     }
 
 
