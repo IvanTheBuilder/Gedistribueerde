@@ -800,13 +800,6 @@ public class Node implements NodeInterface {
         }
     }
 
-    public int getPreviousNode() {
-        return previousNode;
-    }
-
-    public int getNextNode() {
-        return nextNode;
-    }
 
     public int getMyHash(){
         return myHash;
