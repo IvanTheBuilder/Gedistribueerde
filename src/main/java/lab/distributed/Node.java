@@ -133,17 +133,19 @@ public class Node implements NodeInterface {
                 e.printStackTrace();
             }
 
-            node = getNode(fileEntry.getLocal());   //node waar het bestand lokaal staat
+
             try { //bestandsfiche doorsturen naar lokale node
+                node = getNode(fileEntry.getLocal());   //node waar het bestand lokaal staat
                 if(!node.changeLocalEntry(fileEntry.getFileName(),fileEntry))
                     System.out.println("bestand kan niet aangepast worden want het bestaat niet...");
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
             //node waar het bestand naar gerepliceerd wordt
-            node = getNode(previousNode);
+
             //file repliceren naar de vorige node
             try {
+                node = getNode(previousNode);
                 node.replicateNewFile(fileEntry);
             } catch (RemoteException e) {
                 e.printStackTrace();
@@ -156,7 +158,11 @@ public class Node implements NodeInterface {
         for(HashMap.Entry<String, FileEntry> entry: localFiles.entrySet())
         {
             fileEntry = entry.getValue();
-            node = getNode(fileEntry.getOwner()); //eigenaar van het bestand
+            try {
+                node = getNode(fileEntry.getOwner()); //eigenaar van het bestand
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
             downloads=fileEntry.getDownloadLocations();
 
             /*if(downloads.isEmpty()) //nog nergens gedownload geweest
@@ -209,9 +215,9 @@ public class Node implements NodeInterface {
                 replicatedFiles.put(name, entry);
                 System.out.println("Er zit maar 1 node in het netwerk, bestand wordt naar mezelf gerepliceerd...");
             }else {
-                NodeInterface node = getNode(previousNode);
-                System.out.println("bestand wordt gerepliceerd naar vorige node want het staat lokaal bij mij");
                 try {
+                    NodeInterface node = getNode(previousNode);
+                    System.out.println("bestand wordt gerepliceerd naar vorige node want het staat lokaal bij mij");
                     node.replicateNewFile(entry);
                 } catch (RemoteException e) {
                     e.printStackTrace();
@@ -570,13 +576,8 @@ public class Node implements NodeInterface {
      * @param hash de hash van de gewenste Node
      * @return de interface die we gebruiken om RMI aan te roepen
      */
-    public NodeInterface getNode(int hash) {
-        try {
+    public NodeInterface getNode(int hash) throws RemoteException {
             return getNode(nameServer.getAddress(hash));
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 
     /**
@@ -584,11 +585,11 @@ public class Node implements NodeInterface {
      * @param IP het ip adres van de gewenste Node
      * @return de interface die we gebruiken om RMI aan te roepen
      */
-    public NodeInterface getNode(String IP) {
+    public NodeInterface getNode(String IP) throws RemoteException {
         String name = String.format("//%s/NodeInterface", IP);
         try {
             return (NodeInterface) Naming.lookup(name);
-        } catch (NotBoundException | MalformedURLException | RemoteException e) {
+        } catch (NotBoundException | MalformedURLException e) {
             e.printStackTrace();
         }
         return null;
