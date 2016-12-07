@@ -7,13 +7,13 @@ import java.util.Map;
 /**
  * Created by Robbe on 6/12/2016.
  */
-public class FileAgent implements AgentInterface,Serializable {
+public class FileAgent implements AgentInterface, Serializable {
     /**
      * LockedFilesMap bevat alle beschikbare bestanden en per bestand de hash van een node
      * die er een lock op heeft geplaatst. Indien er geen enkele node een lock heeft op een
      * beschikbaar bestand is de value -1.
      */
-    private HashMap<String,Integer> lockedFilesMap = new HashMap<>();
+    private HashMap<String, Integer> lockedFilesMap = new HashMap<>();
     private Node currentNode;
 
     /**
@@ -24,6 +24,7 @@ public class FileAgent implements AgentInterface,Serializable {
      * Elke ronde moet een node zijn lock bevestigen anders wordt de lock vrijgegeven en
      * wordt er vanuit gegaan dat de vorige eigenaar gefailed is. Dit zal door de huidige
      * node worden doorgegeven aan de server.
+     *
      * @throws NullPointerException Opgegooid als er nog niet werd aangegeven op welke node de agent draait.
      */
     @Override
@@ -37,9 +38,9 @@ public class FileAgent implements AgentInterface,Serializable {
             heeft op dit bestand. Als er al een entry bestaat voor het bestand wordt
             er niets aangepast.
              */
-            HashMap<String,FileEntry> currentNodeLocalFiles = currentNode.getLocalFiles();
-            for (Map.Entry<String,FileEntry> entry : currentNodeLocalFiles.entrySet()) {
-                lockedFilesMap.putIfAbsent(entry.getKey(),-1);
+            HashMap<String, FileEntry> currentNodeLocalFiles = currentNode.getLocalFiles();
+            for (Map.Entry<String, FileEntry> entry : currentNodeLocalFiles.entrySet()) {
+                lockedFilesMap.putIfAbsent(entry.getKey(), -1);
             }
 
             /*
@@ -47,8 +48,8 @@ public class FileAgent implements AgentInterface,Serializable {
             We gaan na of er een lock werd aangevraagd voor een bepaald bestand.
             Op het einde geven we een nieuwe lijst door aan de node.
              */
-            HashMap<String,Boolean> currentNodeFileList = currentNode.getFileList();
-            for (Map.Entry<String,Boolean> entry : currentNodeFileList.entrySet()) {
+            HashMap<String, Boolean> currentNodeFileList = currentNode.getFileList();
+            for (Map.Entry<String, Boolean> entry : currentNodeFileList.entrySet()) {
                 /*
                 We gaan de oude lijst van de huidige node af. Als de huidige node een lock heeft aangevraagd voor een
                 bestand kijken we na of er niet reeds een lock bestond voor dat bestand. In dat geval wordt de eigenaar
@@ -57,7 +58,7 @@ public class FileAgent implements AgentInterface,Serializable {
                 teruggeven, zoniet wordt de huidige waarde teruggegeven (dit is dan de hash van de eigenaar van een lock).
                 We slaan de waarde van de eigenaar van een lock op ter controle.
                  */
-                int ownerOfLock = lockedFilesMap.putIfAbsent(entry.getKey(),entry.getValue() ? currentNode.getMyHash() : -1);
+                int ownerOfLock = lockedFilesMap.putIfAbsent(entry.getKey(), entry.getValue() ? currentNode.getMyHash() : -1);
                 boolean isFirst = currentNode.getNextNode() > currentNode.getPreviousNode();
                 boolean lockApproved = false;
                 if ((isFirst ? (currentNode.getMyHash() < ownerOfLock) : (currentNode.getMyHash() > ownerOfLock)) && (ownerOfLock != -1)) {
@@ -69,8 +70,9 @@ public class FileAgent implements AgentInterface,Serializable {
                     een file lock werd toegestaan voor het bestand. Er werd immers reeds gecontroleerd of er iemand
                     het bestand reeds had gelocked, zoniet is er nooit een probleem en komen we nooit in deze branch.
                      */
-                    lockApproved = lockedFilesMap.replace(entry.getKey(),-1,entry.getValue() ? currentNode.getMyHash() : -1);
-                    currentNode.approveFileLock(lockApproved);
+                    lockApproved = lockedFilesMap.replace(entry.getKey(), -1, entry.getValue() ? currentNode.getMyHash() : -1);
+                    if (lockApproved)
+                        currentNode.approveFileLock(entry.getKey());
                     currentNode.failure(ownerOfLock);
                 }
                 // deze branch is altijd geldig als u zelf een lock bezit op een bestand
@@ -86,8 +88,9 @@ public class FileAgent implements AgentInterface,Serializable {
                     en wordt de waarde -1 opnieuw geschreven.
                      */
                     boolean isOwnerOfLock = lockedFilesMap.get(entry.getKey()) == currentNode.getMyHash();
-                    lockApproved = lockedFilesMap.replace(entry.getKey(),isOwnerOfLock ? currentNode.getMyHash() : -1,entry.getValue() ? currentNode.getMyHash() : -1);
-                    currentNode.approveFileLock(lockApproved);
+                    lockApproved = lockedFilesMap.replace(entry.getKey(), isOwnerOfLock ? currentNode.getMyHash() : -1, entry.getValue() ? currentNode.getMyHash() : -1);
+                    if (lockApproved)
+                        currentNode.approveFileLock(entry.getKey());
                 }
             }
 
@@ -97,9 +100,9 @@ public class FileAgent implements AgentInterface,Serializable {
             hash van de eigenaar van een lock gelijk is aan die van de huidige node en deze
             boolean waarde in de nieuwe lijst te zetten.
              */
-            HashMap<String,Boolean> newFileList = new HashMap<>();
-            for (Map.Entry<String,Integer> entry : lockedFilesMap.entrySet()) {
-                newFileList.put(entry.getKey(),entry.getValue() == currentNode.getMyHash());
+            HashMap<String, Boolean> newFileList = new HashMap<>();
+            for (Map.Entry<String, Integer> entry : lockedFilesMap.entrySet()) {
+                newFileList.put(entry.getKey(), entry.getValue() == currentNode.getMyHash());
             }
             currentNode.setFileList(newFileList);
         }
@@ -107,6 +110,7 @@ public class FileAgent implements AgentInterface,Serializable {
 
     /**
      * Deze methode zet de huidige node waarop de agent draait.
+     *
      * @param node de node waarop de agent zich momenteel bevindt.
      */
     @Override
