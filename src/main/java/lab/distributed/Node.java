@@ -968,10 +968,9 @@ public class Node implements NodeInterface {
                 }
                 Random rand = new Random();
                 String IP = downloadLocations.get(rand.nextInt(downloadLocations.size()));
-                requestFile(IP,filename);
-                //TODO: file moet uit bestand gedisplayed worden
+                requestFile(IP,filename);       //file wordt opgeslagen in eigen replicated directory
                 releaseFileLock(filename);
-                return null;//gedownloade file
+                return new File(REPLICATED_DIRECTORY + File.separator + filename);
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
