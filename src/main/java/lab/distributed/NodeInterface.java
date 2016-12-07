@@ -2,6 +2,7 @@ package lab.distributed;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.util.HashMap;
 
 /**
  * Interface van de Node waardoor we een node via RMI kunnen bereiken
@@ -76,5 +77,9 @@ public interface NodeInterface extends Remote {
      * @throws RemoteException
      */
     void startAgent(AgentInterface agent) throws RemoteException;
+
+    HashMap getLocalFiles() throws  RemoteException;
+
+    HashMap<String, FileEntry> getReplicatedFiles();
 
 }

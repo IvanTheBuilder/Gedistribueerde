@@ -35,6 +35,7 @@ public class Node implements NodeInterface {
     private static final Path LOCAL_DIRECTORY = Paths.get("local");
     private static final Path REPLICATED_DIRECTORY = Paths.get("replicated");
     private HashMap<String,Boolean> fileList;
+    private ArrayList<String> lockedFiles = new ArrayList<>();
 
     /**
      * De constructor gaat een nieuwe node aanmaken in de nameserver met de gekozen naam en het ip adres van de machine waarop hij gestart wordt.
@@ -800,14 +801,6 @@ public class Node implements NodeInterface {
         }
     }
 
-    public int getPreviousNode() {
-        return previousNode;
-    }
-
-    public int getNextNode() {
-        return nextNode;
-    }
-
     public int getMyHash(){
         return myHash;
     }
@@ -826,12 +819,13 @@ public class Node implements NodeInterface {
                     t.join();                   //wachten tot de agent klaar is met lopen
                 } catch (InterruptedException e) {
                     e.printStackTrace();
-                }
+                }/*
                 try {
-                    getNode(nextNode).startAgent(agent);//agent starten op de volgende Node
+                    if(!agent.isFinished())
+                        getNode(nextNode).startAgent(agent);//agent starten op de volgende Node
                 } catch (RemoteException e) {
                     e.printStackTrace();
-                }
+                }*/
             }
         }
         Thread t = new Thread(new Temp(this));
@@ -853,13 +847,38 @@ public class Node implements NodeInterface {
      * @param filename de bestandsnaam waarop de lock moet aangevraagd worden
      * @return true als de actie succescol was, false als de bestandsnaam niet bestaat
      */
-    public boolean requestFileLock(String filename)
+    private boolean requestFileLock(String filename)
     {
         if(fileList.containsKey(filename)) {
             fileList.put(filename, true);
             return true;
         }else
             return false;
+    }
+
+    /**
+     * lock op een bestand mag opgeheven worden
+     * @param filename naam van het bestand waarvan de lock opgeheven wordt
+     * @return true als het gelukt is, false als het bestand niet gelocked was
+     */
+    private boolean releaseFileLock(String filename)
+    {
+        if(lockedFiles.contains(filename))
+        {
+            lockedFiles.remove(filename);
+            fileList.put(filename,false);
+            return true;
+        }else
+            return false;
+    }
+
+    /**
+     * wordt opgeroepen door de agent om aan te geven dat een bestand gelocked is voor deze node
+     * @param filename naam van gelockte bestand
+     */
+    protected void approveFileLock(String filename)
+    {
+        lockedFiles.add(filename);
     }
 
     /**
@@ -905,4 +924,46 @@ public class Node implements NodeInterface {
 
 
 
+    public File displayFile(String filename)
+    {
+        if(lockedFiles.contains(filename))
+        {
+            try {
+                String owner = nameServer.getOwner(filename);
+                NodeInterface node = getNode(owner);
+                HashMap<String, FileEntry> files = node.getReplicatedFiles();
+                ArrayList<String> downloadLocations = null;
+                if(files.containsKey(filename)) {
+                    downloadLocations = files.get(filename).getDownloadLocations();
+                } else {
+                    files = node.getLocalFiles();
+                    if(files.containsKey(filename)) {
+                        downloadLocations = files.get(filename).getDownloadLocations();
+                    } else {
+                        System.out.println("ERROR: bestand bestaat nergens op de owner");
+                        return null;
+                    }
+                }
+                Random rand = new Random();
+                String IP = downloadLocations.get(rand.nextInt(downloadLocations.size()));
+                node = getNode(IP);
+                //bestand downloaden van node
+                releaseFileLock(filename);
+                return null;//gedownloade file
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+        }else
+            return null;//wachten tot bestand wordt vrijgegeven
+        return null;
+    }
+
+    @Override
+    public HashMap<String, FileEntry> getReplicatedFiles() {
+        return replicatedFiles;
+    }
+
+    @Override
+    public HashMap getLocalFiles() {
+        return localFiles;}
 }
