@@ -58,6 +58,7 @@ public class Node implements NodeInterface {
         System.out.println("RMI ✓");
         fileServer = new FileServer(FILESERVER_PORT); //fileserver wordt opgestart
         System.out.println("Fileserver ✓");
+        System.out.println("Waiting for replies...");
         sendBootstrapBroadcast();   //jezelf broadcasten over het netwerk
     }
 
@@ -116,43 +117,46 @@ public class Node implements NodeInterface {
 
         System.out.println("Leaving the network and updating my neighbours...");
         try {
+            if(previousNode != -1 && nextNode != -1) { //Eerst nakijken of node wel volledig is opgestart
             getNode(previousNode).setNextNode(nextNode);//naar de previous node het id van de next node sturen
             getNode(nextNode).setPreviousNode(previousNode);//naar de next node het id van de previous node sturen
+            }
         } catch (RemoteException e) {
             e.printStackTrace();
         }
+        if(previousNode != -1 && nextNode != -1) { //Eerst nakijken of node wel volledig is opgestart
+            //bestanden die hier gerepliceerd staan, repliceren naar de vorige node
+            System.out.println("replicating my files to previous node...");
 
-        //bestanden die hier gerepliceerd staan, repliceren naar de vorige node
-        System.out.println("replicating my files to previous node...");
-        for(HashMap.Entry<String, FileEntry> entry: replicatedFiles.entrySet())
-        {
-            fileEntry = entry.getValue();           //elke bestandsfiche een voor een aflopen
-            try { //entry aanpassen
-                fileEntry.setReplicated(nameServer.getAddress(previousNode));
-                fileEntry.setOwner(nameServer.getAddress(previousNode));
-            } catch (RemoteException e) {
-                e.printStackTrace();
+            for (HashMap.Entry<String, FileEntry> entry : replicatedFiles.entrySet()) {
+                fileEntry = entry.getValue();           //elke bestandsfiche een voor een aflopen
+                try { //entry aanpassen
+                    fileEntry.setReplicated(nameServer.getAddress(previousNode));
+                    fileEntry.setOwner(nameServer.getAddress(previousNode));
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+
+
+                try { //bestandsfiche doorsturen naar lokale node
+                    node = getNode(fileEntry.getLocal());   //node waar het bestand lokaal staat
+                    if (!node.changeLocalEntry(fileEntry.getFileName(), fileEntry))
+                        System.out.println("bestand kan niet aangepast worden want het bestaat niet...");
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+                //node waar het bestand naar gerepliceerd wordt
+
+                //file repliceren naar de vorige node
+                try {
+                    node = getNode(previousNode);
+                    node.replicateNewFile(fileEntry);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+                sendFile(previousNode, fileEntry.getFileName(), REPLICATED_DIRECTORY); // bestand doorsturen naar de vorige node
             }
 
-
-            try { //bestandsfiche doorsturen naar lokale node
-                node = getNode(fileEntry.getLocal());   //node waar het bestand lokaal staat
-                if(!node.changeLocalEntry(fileEntry.getFileName(),fileEntry))
-                    System.out.println("bestand kan niet aangepast worden want het bestaat niet...");
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            }
-            //node waar het bestand naar gerepliceerd wordt
-
-            //file repliceren naar de vorige node
-            try {
-                node = getNode(previousNode);
-                node.replicateNewFile(fileEntry);
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            }
-            sendFile(previousNode,fileEntry.getFileName(),REPLICATED_DIRECTORY); // bestand doorsturen naar de vorige node
-        }
 
         //Van de lokale bestanden wordt de eigenaar verwittigd of de downloadlocaties aangepast
         System.out.println("warning owner of local files...");
@@ -179,6 +183,8 @@ public class Node implements NodeInterface {
             //Is de lokale node dan ook een downloadlocatie?*/
         }
         //TODO: Ivan: laatste bestanden worden niet verzonden bij een exit, methode replicatenewfile wordt wel aangeroepen maar het bestand zelf wordt niet verzonden over tcp
+        }
+        if(nameServer != null)
         deleteNode(hashName(name));                     //node verwijderen uit de nameserver
         System.exit(0);                                 //systeem afsluiten
     }
@@ -330,7 +336,6 @@ public class Node implements NodeInterface {
         try {
             datagramSocket = new DatagramSocket(MULTICAST_PORT, InetAddress.getLocalHost());
             datagramSocket.send(new DatagramPacket(message, message.length, InetAddress.getByName(GROUP), MULTICAST_PORT));
-            System.out.println("Multicast sent from " + name);
             datagramSocket.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -575,7 +580,8 @@ public class Node implements NodeInterface {
             registry.bind("NodeInterface", nodeInterface);
             System.out.println("Started RMI. Ready for connections...");
         } catch (RemoteException | AlreadyBoundException e) {
-            e.printStackTrace();
+            System.out.println("RMI not running or hasn't been restarted. Aborting...");
+            System.exit(1);
         }
     }
 
@@ -609,7 +615,7 @@ public class Node implements NodeInterface {
             System.out.println("Nameserver rejected our node because of duplicate entry. Quitting...");
             System.exit(1);
         } else {
-            System.out.println("Nameserver replied from " + ip);
+            System.out.println("Nameserver ✓ (" + ip +")");
             connectToNameServer(ip);
             if (size == 1) {
                 System.out.println("I'm the first node. I'm also the previous and next node. ");
@@ -883,5 +889,20 @@ public class Node implements NodeInterface {
             e.printStackTrace();
         }
     }
+
+    public NameServerInterface getNameServer() {
+        return nameServer;
+    }
+
+    public int getPreviousNode() {
+        return this.previousNode;
+    }
+
+    public int getNextNode() {
+        return this.nextNode;
+    }
+
+
+
 
 }
