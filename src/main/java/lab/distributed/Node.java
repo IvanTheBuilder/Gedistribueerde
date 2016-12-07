@@ -801,6 +801,7 @@ public class Node implements NodeInterface {
         }
     }
 
+
     public int getMyHash(){
         return myHash;
     }
