@@ -94,6 +94,11 @@ public class NameServer implements NameServerInterface {
         return next != null ? next.intValue() : nodeMap.firstKey();
     }
 
+    /**
+     * Zoekt closest hash op in nodeMap, de node met closest hash moet eigenaar worden.
+     * @param filename Het pad van het bestand.
+     * @return IP van de node, of null wanneer nodemap leeg is.
+     */
     @Override
     public String getOwner(String filename) {
         int fileHash = hashName(filename);

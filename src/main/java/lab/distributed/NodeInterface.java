@@ -78,8 +78,26 @@ public interface NodeInterface extends Remote {
      */
     void startAgent(AgentInterface agent) throws RemoteException;
 
-    HashMap getLocalFiles() throws  RemoteException;
+    /**
+     * Haalt een fileEntry op vanop een adnere node, via RMI oproepen
+     * @param fileName fileName van de entry die je wil hebben
+     * @return de fileEntry die bij fileName hoort
+     * @throws RemoteException
+     */
+    FileEntry getRemoteFileEntry(String fileName) throws RemoteException;
 
-    HashMap<String, FileEntry> getReplicatedFiles();
+    /**
+     * gets local files hashmap
+     * @return local files hashmap
+     * @throws RemoteException
+     */
+    HashMap<String, FileEntry> getLocalFiles() throws  RemoteException;
+
+    /**
+     * gets replicated files hashmap
+     * @return replicated files hashmap
+     * @throws RemoteException
+     */
+    HashMap<String, FileEntry> getReplicatedFiles() throws RemoteException;
 
 }

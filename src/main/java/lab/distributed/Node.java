@@ -204,6 +204,17 @@ public class Node implements NodeInterface {
             return false;
     }
 
+    /**
+     * haalt fileEntry uit de remote replicated folder op
+     * @param fileName fileName van de entry die je wil hebben
+     * @return fileEntry, of null
+     * @throws RemoteException
+     */
+    @Override
+    public FileEntry getRemoteFileEntry(String fileName) throws RemoteException {
+        return replicatedFiles.get(fileName);
+    }
+
     @Override
     public void replicateNewFile(FileEntry entry)
     {

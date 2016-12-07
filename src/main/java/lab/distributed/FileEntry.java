@@ -99,6 +99,10 @@ public class FileEntry implements Comparable<FileEntry>, Serializable {
         return Math.abs(name.hashCode() % 32768);
     }
 
+    public void putOwner (String owner){
+        this.owner = owner;
+    }
+
     @Override
     public String toString() {
         return "bestand "+fileName+" staat op node met hash"+replicated;

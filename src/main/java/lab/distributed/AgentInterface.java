@@ -6,6 +6,12 @@ package lab.distributed;
 public interface AgentInterface extends Runnable {
 
     /**
+     * controle voor Node om te weten of de Agent klaar is, en niet meer doorgegeven moet worden.
+     * @return
+     */
+    boolean isFinished();
+
+    /**
      * Interface voor de AgentInterface
      */
 
