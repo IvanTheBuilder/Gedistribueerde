@@ -374,7 +374,7 @@ public class Node implements NodeInterface {
      *
      * @param hash het id van de node waarmee de communicatie mislukt is
      */
-    private void failure(int hash) {
+    public void failure(int hash) {
         try {
             System.out.println("Detected failure from "+hash+".");
             int nextNode = nameServer.getNextNode(hash);
@@ -792,6 +792,14 @@ public class Node implements NodeInterface {
 
 
         }
+    }
+
+    public int getPreviousNode() {
+        return previousNode;
+    }
+
+    public int getNextNode() {
+        return nextNode;
     }
 
     public int getMyHash(){
