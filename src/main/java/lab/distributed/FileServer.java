@@ -19,6 +19,7 @@ public class FileServer {
         try {
             serverSocket = new ServerSocket(port);
         } catch (IOException e) {
+            e.printStackTrace();
             System.out.println("Failed to start fileserver, aborting...");
             System.exit(1);
         }
