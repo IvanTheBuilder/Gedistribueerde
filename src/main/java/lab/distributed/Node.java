@@ -375,7 +375,7 @@ public class Node implements NodeInterface {
                 watchDir = new WatchDir(LOCAL_DIRECTORY, false, this);//watchdir class op LOCAL_DIRECTORY, niet recursief, op deze node
             } catch (IOException e) {
                 System.out.println("Failed to start watchdir, aborting...");
-                //TODO: exit oproepen zodat nameserver ons ziet weggaan
+                exit();
                 System.exit(1);
             }
             System.out.println("Watchdir ✓");
@@ -696,7 +696,11 @@ public class Node implements NodeInterface {
 
                 } catch (RemoteException e) {
                     System.out.println("RMI Exception bij replicatie. Node wordt beschouwd als gefaalt.");
-                    failure(nameServer.getOwnerHash(fileName));
+                    try {
+                        failure(nameServer.getOwnerHash(fileName));
+                    } catch (RemoteException e1) {
+                        e1.printStackTrace();
+                    }
                 }
                 break;
             case "ENTRY_DELETE":
