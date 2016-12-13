@@ -34,7 +34,8 @@ public class StartNode {
         System.out.println("Trying to start node with name: "+name);
         Node node = new Node(name);
         while(true) {
-            String[] command = scanner.nextLine().split(" ");
+            String nextline = scanner.nextLine();
+            String[] command = nextline.split(" ");
             switch (command[0].toLowerCase()) {
                 case "exit":
                     node.exit();
@@ -62,7 +63,9 @@ public class StartNode {
                     if(command.length < 2) {
                         System.out.println("Usage: openfile <filename>");
                     } else {
-                        File file = node.displayFile(command[1]);
+                        String filename = nextline.substring(9);
+                        System.out.println("Trying to request "+filename);
+                        File file = node.displayFile(filename);
                         try {
                             Desktop.getDesktop().open(file);
                         } catch (IOException e) {
