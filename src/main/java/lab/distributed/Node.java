@@ -379,7 +379,7 @@ public class Node implements NodeInterface {
                 watchDir = new WatchDir(LOCAL_DIRECTORY, false, this);//watchdir class op LOCAL_DIRECTORY, niet recursief, op deze node
             } catch (IOException e) {
                 System.out.println("Failed to start watchdir, aborting...");
-                //TODO: exit oproepen zodat nameserver ons ziet weggaan
+                exit();
                 System.exit(1);
             }
             System.out.println("Watchdir ✓");
