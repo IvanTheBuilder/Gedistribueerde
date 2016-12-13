@@ -141,6 +141,7 @@ public class RecoveryAgent implements AgentInterface, Serializable{
 
             justStarted = false;
         }
+        currentNode = null;
     }
 
     @Override

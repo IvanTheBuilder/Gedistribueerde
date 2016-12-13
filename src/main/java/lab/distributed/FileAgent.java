@@ -114,6 +114,7 @@ public class FileAgent implements AgentInterface, Serializable {
             }
             currentNode.setFileList(newFileList);
         }
+        currentNode = null;
     }
 
     /**

@@ -853,7 +853,7 @@ public class Node implements NodeInterface {
                 }
             }
         }
-        Thread t = new Thread(new Temp(this));
+        Thread t = new Thread(new Temp(Node.this));
         t.start();
         System.out.println("agent is doorgegeven naar volgende node");
     }
