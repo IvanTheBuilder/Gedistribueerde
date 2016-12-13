@@ -218,25 +218,21 @@ public class Node implements NodeInterface {
     @Override
     public void replicateNewFile(FileEntry entry)
     {
-        System.out.println("bestand met naam " + entry.getFileName() + " wordt naar mij gerepliceerd...");
         String name = entry.getFileName();
         if (!localFiles.containsKey(name)) //als het bestand nog niet lokaal bestaat
         {
             if (!entry.getLocalIsOwner()) {
                 entry.setOwner(location);
-                System.out.println("local is niet de owner van " + entry.getFileName());
             }
             entry.setReplicated(location);
             entry.addDownloadLocation(location);
             replicatedFiles.put(name, entry);
             System.out.println("bestand met naam " + entry.getFileName() + " wordt gerepliceerd naar mij en heeft als owner: " + entry.getOwner() + " en heeft als hash " + entry.getHash());
-            System.out.println("bestand succescol gerepliceerd");
         } else { //bestand bestaat lokaal en wordt gerepliceerd naar de vorige
             entry.setOwner(location);
             entry.setLocalIsOwner(true);
             if (previousNode == myHash){ //maar 1 node in netwerk
                 replicatedFiles.put(name, entry);
-                System.out.println("Er zit maar 1 node in het netwerk, bestand wordt naar mezelf gerepliceerd...");
             }else {
                 try {
                     NodeInterface node = getNode(previousNode);
