@@ -983,6 +983,6 @@ public class Node implements NodeInterface {
     }
 
     @Override
-    public HashMap getLocalFiles() {
+    public HashMap<String, FileEntry> getLocalFiles() {
         return localFiles;}
 }

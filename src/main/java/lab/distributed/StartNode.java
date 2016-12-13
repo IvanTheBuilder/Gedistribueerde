@@ -52,6 +52,12 @@ public class StartNode {
                 case "verifyrmi":
                     NameServerInterface nameServerInterface = node.getNameServer();
                     break;
+                case "listfiles":
+                    System.out.println("Local files: ");
+                    node.getLocalFiles().entrySet().forEach(entry -> System.out.printf("%s: %s\n", entry.getKey(), entry.getValue()));
+                    System.out.println("Replicated files: ");
+                    node.getReplicatedFiles().entrySet().forEach(entry -> System.out.printf("%s: %s\n", entry.getKey(), entry.getValue()));
+                    break;
                 default:
                     System.out.println("Unknown command: "+command[0]);
 
