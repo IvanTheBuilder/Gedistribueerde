@@ -832,8 +832,8 @@ public class Node implements NodeInterface {
     @Override
     public void startAgent(AgentInterface agent)
     {
+        while(previousNode==-1 || nextNode == -1 || nameServer == null){};
         System.out.println("agent is gestart op deze node");
-        while(previousNode==-1 ||nextNode == -1 || nameServer == null);
         class Temp implements Runnable {
             Node node;
             Temp(Node node) {this.node=node;}
@@ -915,6 +915,7 @@ public class Node implements NodeInterface {
      */
     private void updateEntryAllNodes(FileEntry entry)
     {
+        //TODO: doet soms dubbel
         String naam = entry.getFileName();
         for(String IP: entry.getDownloadLocations()) {
             try {
