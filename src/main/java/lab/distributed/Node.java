@@ -12,6 +12,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
+import java.util.function.BooleanSupplier;
 
 /**
  * Een node in system y
@@ -34,7 +35,7 @@ public class Node implements NodeInterface {
     private WatchDir watchDir;
     private static final Path LOCAL_DIRECTORY = Paths.get("local");
     private static final Path REPLICATED_DIRECTORY = Paths.get("replicated");
-    private HashMap<String,Boolean> fileList;
+    private HashMap<String,Boolean> fileList = new HashMap<String, Boolean>();
     private ArrayList<String> lockedFiles = new ArrayList<>();
 
     /**
@@ -861,6 +862,7 @@ public class Node implements NodeInterface {
     public void setFileList(HashMap<String,Boolean> list)
     {
         fileList = list;
+        System.out.println(fileList);
     }
 
     /**
