@@ -832,7 +832,7 @@ public class Node implements NodeInterface {
     @Override
     public void startAgent(AgentInterface agent)
     {
-        while(previousNode==-1 || nextNode == -1 || nameServer == null){};
+        while(previousNode==-1 || nextNode == -1 || nameServer == null){;}
         System.out.println("agent is gestart op deze node");
         class Temp implements Runnable {
             Node node;
