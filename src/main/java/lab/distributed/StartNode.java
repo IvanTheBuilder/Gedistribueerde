@@ -1,5 +1,8 @@
 package lab.distributed;
 
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.Scanner;
 
 /**
@@ -55,6 +58,18 @@ public class StartNode {
                     NameServerInterface nameServerInterface = node.getNameServer();
                     //nameServerInterface.getNodeMap().entrySet().forEach(entry -> System.out.printf(""));
                     break;
+                case "openfile":
+                    if(command.length < 2) {
+                        System.out.println("Usage: openfile <filename>");
+                    } else {
+                        File file = node.displayFile(command[1]);
+                        try {
+                            Desktop.getDesktop().open(file);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        break;
+                    }
                 case "listfiles":
                     System.out.println("Local files: ");
                     node.getLocalFiles().entrySet().forEach(entry -> System.out.printf("%s: %s\n", entry.getKey(), entry.getValue()));
