@@ -56,40 +56,40 @@ public class RecoveryAgent implements AgentInterface, Serializable{
     public void run() {
 
         //indien de node niet net begonnen is, en de currentNode = startingNode, dan sluit de recoveyAgent af.
-        if(!justStarted && currentNode.equals(startingNode)){
+        if (!justStarted && currentNode.equals(startingNode)) {
             finished = true;
         }
 
         HashMap<String, FileEntry> localFilesToCheck = currentNode.getLocalFiles();//methode moet nog worden aangemaakt in Node class
-        //HashMap<String, FileEntry> replicatedFileToCheck = currentNode.getReplicatedFiles;//methode moet nog worden aangemaakt in Node class
+        HashMap<String, FileEntry> replicatedFileToCheck = currentNode.getReplicatedFiles();//methode moet nog worden aangemaakt in Node class
         NameServerInterface nameServerInterface = currentNode.getNameServer();//methode moet nog worden aangemaakt in Node class
         //Eerst de local files checken, of er al dan niet een bestand op een andere node terecht moet komen, dit is voor het normaal geval waarbij het bestand niet naar jezelf zou repliceren
-        for(String key : localFilesToCheck.keySet()){
+        for (String key : localFilesToCheck.keySet()) {
             try {
                 String IPofSupposedOwner = nameServerInterface.getOwner(key);
                 int hashOfSupposedeOwner = currentNode.hashName(IPofSupposedOwner);
                 int hashOfFile = currentNode.hashName(key);
-                if(hashOfFile>= hashFailedNode && hashOfSupposedeOwner < hashFailedNode){
+                if (hashOfFile >= hashFailedNode && hashOfSupposedeOwner < hashFailedNode) {
                     NodeInterface newOwner = currentNode.getNode(IPofSupposedOwner);
                     FileEntry fileEntry = newOwner.getRemoteFileEntry(key);
                     //newOwner heeft het bestand nog niet staatn, maak een nieuwe entry aan en repliceer.
-                    if(fileEntry.equals(null)){
+                    if (fileEntry.equals(null)) {
                         FileEntry newFilEntry = new FileEntry(key, InetAddress.getLocalHost().getHostAddress(), IPofSupposedOwner, IPofSupposedOwner);
                         newFilEntry.addDownloadLocation(InetAddress.getLocalHost().getHostAddress());
                         newOwner.replicateNewFile(newFilEntry);
-                    } else if (!fileEntry.getOwner().equals(IPofSupposedOwner)){
+                    } else if (!fileEntry.getOwner().equals(IPofSupposedOwner)) {
                         //Entry is al replicated, maar de node is geen eigenaar
                         FileEntry updatedFileEntry = localFilesToCheck.get(key);
                         updatedFileEntry.putOwner(IPofSupposedOwner);
                         updatedFileEntry.addDownloadLocation(InetAddress.getLocalHost().getHostAddress());
                         newOwner.changeReplicatedEntry(key, updatedFileEntry);
-                    } else if (fileEntry.getOwner().equals(IPofSupposedOwner)){
+                    } else if (fileEntry.getOwner().equals(IPofSupposedOwner)) {
                         //het bestand bestaat al, en de supposednewOwner is al eigenaar door mijn hiervoor genomen acties
                         FileEntry updatedFileEntry = newOwner.getRemoteFileEntry(key);
                         updatedFileEntry.addDownloadLocation(InetAddress.getLocalHost().getHostAddress());
                         newOwner.changeReplicatedEntry(key, updatedFileEntry);
                     }
-                }else if (hashOfSupposedeOwner == currentNode.getMyHash() && failedNodeWasPreviousNode){
+                } else if (hashOfSupposedeOwner == currentNode.getMyHash() && failedNodeWasPreviousNode) {
                     //wanneer een bestand naar jezelf zou repliceren, en de failed node was je previousnode, dan moet je gaan repliceren naar je nieuwe previousnode
                     //omdat deze al staat ingesteld (zie notes bij constructor) kan je dit gewoon doen.
                     int previousNodeHash = currentNode.getPreviousNode();
@@ -104,28 +104,27 @@ public class RecoveryAgent implements AgentInterface, Serializable{
                 e.printStackTrace();
             }
         }
-        /*
-        //Daarna mogelijk ook replicatedFiles checkenµ?
-        for(String key : replicatedFileToCheck.keySet()){
+
+        for (String key : replicatedFileToCheck.keySet()) {
             try {
                 String IPofSupposedOwner = nameServerInterface.getOwner(key);
                 int hashOfSupposedeOwner = currentNode.hashName(IPofSupposedOwner);
                 int hashOfFile = currentNode.hashName(key);
-                if(hashOfFile>= hashFailedNode && hashOfSupposedeOwner < hashFailedNode){
+                if (hashOfFile >= hashFailedNode && hashOfSupposedeOwner < hashFailedNode) {
                     NodeInterface newOwner = currentNode.getNode(IPofSupposedOwner);
                     FileEntry fileEntry = newOwner.getRemoteFileEntry(key);
                     //newOwner heeft het bestand nog niet staatn, maak een nieuwe entry aan en repliceer.
-                    if(fileEntry.equals(null)){
+                    if (fileEntry.equals(null)) {
                         FileEntry newFilEntry = new FileEntry(key, InetAddress.getLocalHost().getHostAddress(), IPofSupposedOwner, IPofSupposedOwner);
                         newFilEntry.addDownloadLocation(InetAddress.getLocalHost().getHostAddress());
                         newOwner.replicateNewFile(newFilEntry);
-                    } else if (!fileEntry.getOwner().equals(IPofSupposedOwner)){
+                    } else if (!fileEntry.getOwner().equals(IPofSupposedOwner)) {
                         //Entry is al replicated, maar de node is geen eigenaar
                         FileEntry updatedFileEntry = localFilesToCheck.get(key);
                         updatedFileEntry.putOwner(IPofSupposedOwner);
                         updatedFileEntry.addDownloadLocation(InetAddress.getLocalHost().getHostAddress());
                         newOwner.changeReplicatedEntry(key, updatedFileEntry);
-                    } else if (fileEntry.getOwner().equals(IPofSupposedOwner)){
+                    } else if (fileEntry.getOwner().equals(IPofSupposedOwner)) {
                         //het bestand bestaat al, en de supposednewOwner is al eigenaar door mijn hiervoor genomen acties
                         FileEntry updatedFileEntry = newOwner.getRemoteFileEntry(key);
                         updatedFileEntry.addDownloadLocation(InetAddress.getLocalHost().getHostAddress());
@@ -138,9 +137,10 @@ public class RecoveryAgent implements AgentInterface, Serializable{
             } catch (UnknownHostException e) {
                 e.printStackTrace();
             }
-        */
 
-        justStarted = false;
+
+            justStarted = false;
+        }
     }
 
     @Override
