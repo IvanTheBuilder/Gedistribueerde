@@ -637,7 +637,11 @@ public class Node implements NodeInterface {
                 System.out.println("I'm the first node. I'm also the previous and next node. ");
                 previousNode = myHash;
                 nextNode = myHash;
-                //getNode(nextNode).startAgent(new FileAgent());
+                try {
+                    getNode(nextNode).startAgent(new FileAgent());
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
                 try {
                     watchDir = new WatchDir(LOCAL_DIRECTORY, false, this);//watchdir class op LOCAL_DIRECTORY, niet recursief, op deze node
                 } catch (IOException e) {
@@ -951,6 +955,7 @@ public class Node implements NodeInterface {
      */
     public File displayFile(String filename)
     {
+        //TODO: eerst eigen files checken
         System.out.println("requesting filelock...");
         while(!requestFileLock(filename));          // lock blijven aanvragen tot bestand in onze filelist staat
         System.out.println("filelock is requested");
