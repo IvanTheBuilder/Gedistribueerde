@@ -827,6 +827,7 @@ public class Node implements NodeInterface {
     @Override
     public void startAgent(AgentInterface agent)
     {
+        System.out.println("agent is gestart op deze node");
         class Temp implements Runnable {
             Node node;
             Temp(Node node) {this.node=node;}
@@ -849,6 +850,7 @@ public class Node implements NodeInterface {
         }
         Thread t = new Thread(new Temp(this));
         t.start();
+        System.out.println("agent is doorgegeven naar volgende node");
     }
 
     public HashMap getFileList()
@@ -947,8 +949,11 @@ public class Node implements NodeInterface {
      */
     public File displayFile(String filename)
     {
-        while(!lockedFiles.contains(filename)) {} //wacht tot bestand aan ons gegeven wordt
-        requestFileLock(filename);
+        System.out.println("requesting filelock...");
+        while(!requestFileLock(filename));          // lock blijven aanvragen tot bestand in onze filelist staat
+        System.out.println("filelock is requested");
+        while(!lockedFiles.contains(filename)) {}   //wacht tot bestand aan ons gegeven wordt
+        System.out.println("bestand "+filename+" is gelocked ");
         NodeInterface node = null;
         ArrayList<String> downloadLocations = null;
             try {
