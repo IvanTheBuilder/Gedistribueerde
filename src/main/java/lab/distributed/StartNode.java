@@ -50,7 +50,10 @@ public class StartNode {
                     System.exit(1);
                     break;
                 case "verifyrmi":
+                    break;
+                case "listnodes":
                     NameServerInterface nameServerInterface = node.getNameServer();
+                    //nameServerInterface.getNodeMap().entrySet().forEach(entry -> System.out.printf(""));
                     break;
                 case "listfiles":
                     System.out.println("Local files: ");

@@ -700,7 +700,11 @@ public class Node implements NodeInterface {
 
                 } catch (RemoteException e) {
                     System.out.println("RMI Exception bij replicatie. Node wordt beschouwd als gefaalt.");
-                    failure(nameServer.getOwnerHash(fileName));
+                    try {
+                        failure(nameServer.getOwnerHash(fileName));
+                    } catch (RemoteException e1) {
+                        e1.printStackTrace();
+                    }
                 }
                 break;
             case "ENTRY_DELETE":

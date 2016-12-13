@@ -2,6 +2,7 @@ package lab.distributed;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.util.TreeMap;
 
 /**
  * Interface van de nameserver waardoor we de nameserver via RMI kunnen aanroepen
@@ -34,7 +35,7 @@ public interface NameServerInterface extends Remote {
      */
     boolean removeNode(int nodeName) throws RemoteException;
 
-    int getOwnerHash(String filename);
+    int getOwnerHash(String filename) throws RemoteException;
 
     /**
      * Vraag het IP op van een node.
@@ -58,4 +59,5 @@ public interface NameServerInterface extends Remote {
      */
     int getPreviousNode(int hash) throws RemoteException;
 
+    TreeMap<Integer, String> getNodeMap() throws RemoteException;
 }
