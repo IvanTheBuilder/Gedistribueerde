@@ -1,7 +1,6 @@
 package lab.distributed;
 
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -89,8 +88,9 @@ public class FileAgent implements AgentInterface, Serializable {
                     lockApproved = lockedFilesMap.replace(entry.getKey(), ownerOfLock, entry.getValue() ? currentNode.getMyHash() : -1);
                     if (lockApproved)
                         currentNode.approveFileLock(entry.getKey());
+                    //TODO: nagaan of er een methode bestaat om via een hash na te gaan of een node zich in het netwerk bevindt
                     currentNode.failure(ownerOfLock);
-                    //this.purge(); (zie bovenaan)
+                    //this.purge(); (zie bovenaan run)
                 }
                 /*
                 Deze branch is (onder andere) altijd geldig als u zelf een lock bezit op een bestand.
@@ -119,7 +119,7 @@ public class FileAgent implements AgentInterface, Serializable {
             er nieuwe bestanden zijn bijgekomen, zoja voegen we deze toe aan de lockedFilesMap
             en zetten we de waarde op -1 om aan te geven dat er geen enkele node een lock
             heeft op dit bestand. Als er al een entry bestaat voor het bestand wordt
-            er niets aangepast. Deze iteratie staat hier omdat er bij failen van ...
+            er niets aangepast. Deze iteratie staat hier omdat...
             TODO: nadenken over positie in code en comments afwerken
              */
             HashMap<String, FileEntry> currentNodeLocalFiles = currentNode.getLocalFiles();
@@ -157,7 +157,7 @@ public class FileAgent implements AgentInterface, Serializable {
      * We verwijderen alle entries in de lockedFilesMap waar niemand een lock op heeft.
      * Dit is nodig wanneer er een node gefaald is. Immers, als de gefaalde node een lock
      * heeft werd deze reeds vervangen door de default waarde -1 en dus kunnen we eenvoudig...
-     * TODO: comments afwerken en nadenken of deze methode wel nodig is? (zie bovenaan)
+     * TODO: comments afwerken en nadenken of deze methode wel nodig is? (zie bovenaan run)
      */
     private void purge() {
         //remove(-1) zou enkel de eerste entry met deze waarde verwijderen
