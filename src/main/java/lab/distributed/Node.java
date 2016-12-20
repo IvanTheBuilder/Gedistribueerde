@@ -120,11 +120,19 @@ public class Node implements NodeInterface {
         System.out.println("Leaving the network and updating my neighbours...");
         try {
             if(previousNode != -1 && nextNode != -1) { //Eerst nakijken of node wel volledig is opgestart
-            getNode(previousNode).setNextNode(nextNode);//naar de previous node het id van de next node sturen
             getNode(nextNode).setPreviousNode(previousNode);//naar de next node het id van de previous node sturen
             }
         } catch (RemoteException e) {
             e.printStackTrace();
+            failure(nextNode);
+        }
+        try {
+            if(previousNode != -1 && nextNode != -1) { //Eerst nakijken of node wel volledig is opgestart
+                getNode(previousNode).setNextNode(nextNode);//naar de previous node het id van de next node sturen
+            }
+        } catch (RemoteException e) {
+            e.printStackTrace();
+            failure(previousNode);
         }
         if(previousNode != -1 && nextNode != -1) { //Eerst nakijken of node wel volledig is opgestart
             //bestanden die hier gerepliceerd staan, repliceren naar de vorige node
@@ -146,6 +154,7 @@ public class Node implements NodeInterface {
                         System.out.println("bestand kan niet aangepast worden want het bestaat niet...");
                 } catch (RemoteException e) {
                     e.printStackTrace();
+                    //todo manier vinden om van IP naar hash te gaan.
                 }
                 //node waar het bestand naar gerepliceerd wordt
 
@@ -155,6 +164,7 @@ public class Node implements NodeInterface {
                     node.replicateNewFile(fileEntry);
                 } catch (RemoteException e) {
                     e.printStackTrace();
+                    failure(previousNode);
                 }
                 sendFile(previousNode, fileEntry.getFileName(), REPLICATED_DIRECTORY); // bestand doorsturen naar de vorige node
             }
@@ -169,6 +179,7 @@ public class Node implements NodeInterface {
                 node = getNode(fileEntry.getOwner()); //eigenaar van het bestand
             } catch (RemoteException e) {
                 e.printStackTrace();
+                //todo uit ip hash halen.
             }
             downloads=fileEntry.getDownloadLocations();
 
@@ -241,6 +252,7 @@ public class Node implements NodeInterface {
                     node.replicateNewFile(entry);
                 } catch (RemoteException e) {
                     e.printStackTrace();
+                    failure(previousNode);
                 }
             }
             sendFile(previousNode, entry.getFileName(), LOCAL_DIRECTORY);
@@ -621,6 +633,8 @@ public class Node implements NodeInterface {
             return (NodeInterface) Naming.lookup(name);
         } catch (NotBoundException | MalformedURLException e) {
             e.printStackTrace();
+            failure(name.hashCode());
+            System.out.println("node met hash: "+name.hashCode()+" is gefaald.");
         }
         return null;
     }
@@ -641,6 +655,7 @@ public class Node implements NodeInterface {
                     getNode(nextNode).startAgent(new FileAgent());
                 } catch (RemoteException e) {
                     e.printStackTrace();
+                    failure(nextNode);
                 }
                 try {
                     watchDir = new WatchDir(LOCAL_DIRECTORY, false, this);//watchdir class op LOCAL_DIRECTORY, niet recursief, op deze node
@@ -747,6 +762,7 @@ public class Node implements NodeInterface {
                         sendFile(nextNode, valueOfEntry.getFileName(),LOCAL_DIRECTORY);
                     } catch (RemoteException e) {
                         e.printStackTrace();
+                        failure(nextNode);
                     }
                 } else if (previousNode ==nextNode) //maar 2 nodes in het netwerk
                 {
@@ -768,6 +784,7 @@ public class Node implements NodeInterface {
                         sendFile(nextNode, valueOfEntry.getFileName(),LOCAL_DIRECTORY);
                     } catch (RemoteException e) {
                         e.printStackTrace();
+                        failure(nextNode);
                     }
                 }
             }
@@ -797,6 +814,7 @@ public class Node implements NodeInterface {
                         sendFile(nextNode, valueOfEntry.getFileName(), REPLICATED_DIRECTORY);
                     } catch (RemoteException e) {
                         e.printStackTrace();
+                        failure(nextNode);
                     }
                 }
             } else {
@@ -816,6 +834,7 @@ public class Node implements NodeInterface {
                         sendFile(nextNode, valueOfEntry.getFileName(), REPLICATED_DIRECTORY);
                     } catch (RemoteException e) {
                         e.printStackTrace();
+                        failure(nextNode);
                     }
                 }
             }
@@ -857,6 +876,7 @@ public class Node implements NodeInterface {
                         getNode(nextNode).startAgent(agent);//agent starten op de volgende Node
                 } catch (RemoteException e) {
                     e.printStackTrace();
+                    failure(nextNode);
                 }
             }
         }
@@ -931,6 +951,7 @@ public class Node implements NodeInterface {
                     System.out.println("ERROR: replicated entry " + naam + " bestaat niet op node " + IP);
             } catch (RemoteException e) {
                 e.printStackTrace();
+                //Todo manier vinden om uit IP adres de node te halen en dan de hash.
             }
         }
         String IP=entry.getLocal();
@@ -941,6 +962,7 @@ public class Node implements NodeInterface {
                 System.out.println("ERROR: local entry " + naam + " bestaat niet op node " + IP);
         } catch (RemoteException e) {
             e.printStackTrace();
+            //Todo manier vinden om uit IP adres de node te halen en dan de hash.
         }
     }
 
