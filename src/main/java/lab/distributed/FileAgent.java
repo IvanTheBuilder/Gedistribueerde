@@ -1,6 +1,8 @@
 package lab.distributed;
 
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,22 +38,29 @@ public class FileAgent implements AgentInterface, Serializable {
     public void run() throws NullPointerException {
         if (currentNode == null) throw new NullPointerException("Reference to currentNode is null");
         else {
-            /*
-            We gaan eerst de lijst van locale files op de huidige node af om te kijken of
-            er nieuwe bestanden zijn bijgekomen, zoja voegen we deze toe aan de lockedFilesMap
-            en zetten we de waarde op -1 om aan te geven dat er geen enkele node een lock
-            heeft op dit bestand. Als er al een entry bestaat voor het bestand wordt
-            er niets aangepast.
-             */
-            HashMap<String, FileEntry> currentNodeLocalFiles = currentNode.getLocalFiles();
-            for (Map.Entry<String, FileEntry> entry : currentNodeLocalFiles.entrySet()) {
-                lockedFilesMap.putIfAbsent(entry.getKey(), -1);
-            }
 
             /*
-            Vervolgens gaan we de outdated fileList van de huidige node opvragen.
+            Het probleem is dat fileAgent moet weten welke bestanden er nog beschikbaar
+            zijn in het netwerk nadat een node exit of failed. Is het gegarandeerd dat
+            een bestand altijd minstens 2 keer aanwezig is in het netwerk? Indien, ja
+            is er eigenlijk geen probleem en moeten we de purge methode niet uitvoeren
+            bij het failen. Dit houdt in dat er altijd een entry mag bestaan (zei het
+            zonder lock owner) met als key de naam van een bestand eens dit bestand
+            ooit in het netwerk is gekomen.
+             */
+
+            /*
+            Eerst gaan we de outdated fileList van de huidige node opvragen.
             We gaan na of er een lock werd aangevraagd voor een bepaald bestand.
             Op het einde geven we een nieuwe lijst door aan de huidige node.
+            Vermits de huidige node in zijn outdated fileList nog geen notie
+            heeft van zijn eigen nieuwe bestanden kan hij daar onmogenlijk al
+            een lock voor hebben aangevraagd en dus is er geen probleem als we
+            zijn nieuwe files pas toevoegen (aan de lijst van de agent) nadat
+            we gecontroleerd hebben op aanvragen voor locks. De huidige node
+            heeft ook nog geen kennis van andere nieuwe bestanden in het netwerk
+            en kan ook daar onmogenlijk een lock op hebben aangevraagd wat dus
+            betekent dat we gerust de nieuwe fileList pas op het einde kunnen builden.
              */
             HashMap<String, Boolean> currentNodeFileList = currentNode.getFileList();
             for (Map.Entry<String, Boolean> entry : currentNodeFileList.entrySet()) {
@@ -69,16 +78,19 @@ public class FileAgent implements AgentInterface, Serializable {
                 if ((isFirst ? (currentNode.getMyHash() < ownerOfLock) : (currentNode.getMyHash() > ownerOfLock)) && (ownerOfLock != -1)) {
                     /*
                     Heeft de huidige node een lock aangevraagd voor een bestand? Zoja, vervang de vorige eigenaar
-                    van de lock want deze reageert niet meer en roep vervolgens de failure methode aan van de
-                    huidige node door de vorige eigenaar van de lock mee te geven als argument. De speciale versie
-                    van de volgende methode werd enkel gebruikt om na te gaan (a.d.h.v. de return boolean) of
-                    een file lock werd toegestaan voor het bestand. Er werd immers reeds gecontroleerd of er iemand
-                    het bestand reeds had gelocked, zoniet is er nooit een probleem en komen we nooit in deze branch.
+                    van de lock door de hash van de huidige node. Indien nee, vervang de hash van de(gefailde)
+                    eigenaar door de default value -1 want deze reageert niet meer. In beide gevallen roepen we vervolgens
+                    de failure methode aan van de huidige node door de vorige eigenaar van de lock mee te geven
+                    als argument. De speciale versie van de volgende methode werd enkel gebruikt om na te gaan
+                    (a.d.h.v. de return boolean) of een file lock werd toegestaan voor het bestand. Er werd immers
+                    reeds gecontroleerd of er iemand het bestand reeds had gelocked, zoniet is er nooit een probleem
+                    en komen we nooit in deze branch.
                      */
-                    lockApproved = lockedFilesMap.replace(entry.getKey(), -1, entry.getValue() ? currentNode.getMyHash() : -1);
+                    lockApproved = lockedFilesMap.replace(entry.getKey(), ownerOfLock, entry.getValue() ? currentNode.getMyHash() : -1);
                     if (lockApproved)
                         currentNode.approveFileLock(entry.getKey());
                     currentNode.failure(ownerOfLock);
+                    //this.purge(); (zie bovenaan)
                 }
                 /*
                 Deze branch is (onder andere) altijd geldig als u zelf een lock bezit op een bestand.
@@ -103,10 +115,24 @@ public class FileAgent implements AgentInterface, Serializable {
             }
 
             /*
+            We gaan nu de lijst van locale files op de huidige node af om te kijken of
+            er nieuwe bestanden zijn bijgekomen, zoja voegen we deze toe aan de lockedFilesMap
+            en zetten we de waarde op -1 om aan te geven dat er geen enkele node een lock
+            heeft op dit bestand. Als er al een entry bestaat voor het bestand wordt
+            er niets aangepast. Deze iteratie staat hier omdat er bij failen van ...
+            TODO: nadenken over positie in code en comments afwerken
+             */
+            HashMap<String, FileEntry> currentNodeLocalFiles = currentNode.getLocalFiles();
+            for (Map.Entry<String, FileEntry> entry : currentNodeLocalFiles.entrySet()) {
+                lockedFilesMap.putIfAbsent(entry.getKey(), -1);
+            }
+
+            /*
             We geven een nieuwe lijst door aan de node. Als de huidige node een lock heeft op een
             bestand dan laten we deze flag staan in de nieuwe lijst door te controleren of de
             hash van de eigenaar van een lock gelijk is aan die van de huidige node en deze
             boolean waarde in de nieuwe lijst te zetten.
+            TODO: nadenken over positie in code en comments afwerken
              */
             HashMap<String, Boolean> newFileList = new HashMap<>();
             for (Map.Entry<String, Integer> entry : lockedFilesMap.entrySet()) {
@@ -125,5 +151,16 @@ public class FileAgent implements AgentInterface, Serializable {
     @Override
     public void setCurrentNode(Node node) {
         this.currentNode = node;
+    }
+
+    /**
+     * We verwijderen alle entries in de lockedFilesMap waar niemand een lock op heeft.
+     * Dit is nodig wanneer er een node gefaald is. Immers, als de gefaalde node een lock
+     * heeft werd deze reeds vervangen door de default waarde -1 en dus kunnen we eenvoudig...
+     * TODO: comments afwerken en nadenken of deze methode wel nodig is? (zie bovenaan)
+     */
+    private void purge() {
+        //remove(-1) zou enkel de eerste entry met deze waarde verwijderen
+        lockedFilesMap.values().removeAll(Collections.singleton(new Integer(-1)));
     }
 }
