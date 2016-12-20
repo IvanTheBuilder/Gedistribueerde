@@ -999,4 +999,8 @@ public class Node implements NodeInterface {
     @Override
     public HashMap<String, FileEntry> getLocalFiles() {
         return localFiles;}
+
+    public String getLocation(){
+        return  location;
+    }
 }

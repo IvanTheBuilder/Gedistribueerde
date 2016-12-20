@@ -9,7 +9,7 @@ import java.util.HashMap;
  * Created by Joost on 6/12/2016.
  */
 public class RecoveryAgent implements AgentInterface, Serializable{
-    Node startingNode = null;
+    String startingNodeLocation = null;
     Node currentNode = null;
     boolean justStarted = true;
     int hashFailedNode;
@@ -21,12 +21,15 @@ public class RecoveryAgent implements AgentInterface, Serializable{
      * eerst de recoveryAgent initialiseren
      * dan Server notifyen en previous en next node aanpassen
      * tot slot recoveryAgent starten.
+     *
+     *
+     * Voor info omtrent wat de RecoveryAgent juist doet, check commentaar boven run()
      * @param hashFailedNode De hash van de falende node
      * @param startingNode De node die de failure Agent opstart
      */
     public RecoveryAgent(int hashFailedNode, Node startingNode, boolean failedNodeWasPreviousNode){
         this.hashFailedNode = hashFailedNode;
-        this.startingNode = startingNode;
+        this.startingNodeLocation = startingNode.getLocation();
         hashStartingNode = startingNode.getMyHash();
         this.currentNode = startingNode;
         this.failedNodeWasPreviousNode = failedNodeWasPreviousNode;
@@ -56,7 +59,7 @@ public class RecoveryAgent implements AgentInterface, Serializable{
     public void run() {
 
         //indien de node niet net begonnen is, en de currentNode = startingNode, dan sluit de recoveyAgent af.
-        if (!justStarted && currentNode.equals(startingNode)) {
+        if (!justStarted && currentNode.getLocation().equals(startingNodeLocation)) {
             finished = true;
         }
 
@@ -104,7 +107,7 @@ public class RecoveryAgent implements AgentInterface, Serializable{
                 e.printStackTrace();
             }
         }
-
+        //Ook replicated files worden afgegaan, zodat de downloadlocaties bij de nieuwe owner heropgebouwd worden. De check of failed node de previousnode is is hier niet nodig, want het gaat al om replicated files.
         for (String key : replicatedFileToCheck.keySet()) {
             try {
                 String IPofSupposedOwner = nameServerInterface.getOwner(key);
