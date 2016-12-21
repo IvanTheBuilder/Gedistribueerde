@@ -3,6 +3,7 @@ package lab.distributed;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.rmi.RemoteException;
 import java.util.Scanner;
 
 /**
@@ -64,15 +65,15 @@ public class StartNode {
                         System.out.println("Usage: openfile <filename>");
                     } else {
                         String filename = nextline.substring(9);
-                        System.out.println("Trying to request "+filename);
+                        System.out.println("Trying to request " + filename);
                         File file = node.displayFile(filename);
                         try {
                             Desktop.getDesktop().open(file);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-                        break;
                     }
+                    break;
                 case "listfiles":
                     System.out.println("Local files: ");
                     node.getLocalFiles().entrySet().forEach(entry -> System.out.printf("%s: %s\n", entry.getKey(), entry.getValue()));

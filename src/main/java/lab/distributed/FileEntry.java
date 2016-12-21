@@ -33,6 +33,7 @@ public class FileEntry implements Comparable<FileEntry>, Serializable {
     public void addDownloadLocation(String IP)
     {
         downloadLocations.add(IP);
+        System.out.println("downloadlocaties van "+ fileName + ": "+downloadLocations);
     }
 
     public boolean removeDownloadLocation(String IP)
