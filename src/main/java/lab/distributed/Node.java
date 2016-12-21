@@ -859,6 +859,18 @@ public class Node implements NodeInterface {
                 } catch (RemoteException e) {
                     e.printStackTrace();
                     failure(nextNode);
+                    /*
+                    Als de nextNode gefailed is komen we in deze catch branch terecht. De failure
+                    methode past de nextNode reference van deze node aan naar de nieuwe nextNode
+                    en we moeten dus opnieuw proberen de fileAgent door te geven naar de nieuwe
+                    nextNode. De startAgent methode wordt dan opnieuw aangeroepen en we doorlopen
+                    opnieuw de cyclus. Dit gebeurt net zolang de nextNode gefailed is.
+                     */
+                    try {
+                        if (agent.getClass() == FileAgent.class) { getNode(nextNode).startAgent(agent); }
+                    } catch (RemoteException e1) {
+                        e1.printStackTrace();
+                    }
                 }
             }
         }
