@@ -82,9 +82,10 @@ public class FileAgent implements AgentInterface, Serializable {
                 heeft aangevraagd voor het beschouwde bestand.
                  */
                 int ownerOfLock = lockedFilesMap.putIfAbsent(entry.getKey(), entry.getValue() ? currentNode.getMyHash() : -1);
-                boolean isFirst = currentNode.getMyHash() < currentNode.getPreviousNode();
+                boolean currentIsFirst = currentNode.getMyHash() < currentNode.getPreviousNode();
+                boolean ownerWasLast = currentIsFirst && ownerOfLock > currentNode.getPreviousNode();
                 boolean lockApproved = false;
-                if ((isFirst ? (currentNode.getMyHash() < ownerOfLock) : (currentNode.getMyHash() > ownerOfLock)) && (ownerOfLock != -1)) {
+                if ((ownerWasLast ? (currentNode.getMyHash() < ownerOfLock) : (currentNode.getMyHash() > ownerOfLock)) && (ownerOfLock != -1)) {
                     //TODO: print statements verwijderen na testen
                     System.out.println("The file agent noticed node with hash: "+ownerOfLock+" has exited or failed");
                     System.out.println("The lock of "+ownerOfLock+" on "+entry.getKey()+" has been released");
