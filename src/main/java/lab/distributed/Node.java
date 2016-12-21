@@ -863,7 +863,8 @@ public class Node implements NodeInterface {
         System.out.println("agent is doorgegeven naar volgende node");
     }
 
-    public HashMap getFileList() {
+    public HashMap<String, Boolean> getFileList()
+    {
         return fileList;
     }
 

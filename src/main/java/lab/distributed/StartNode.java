@@ -78,6 +78,8 @@ public class StartNode {
                     node.getLocalFiles().entrySet().forEach(entry -> System.out.printf("%s: %s\n", entry.getKey(), entry.getValue()));
                     System.out.println("Replicated files: ");
                     node.getReplicatedFiles().entrySet().forEach(entry -> System.out.printf("%s: %s\n", entry.getKey(), entry.getValue()));
+                    System.out.println("File List van Agent:");
+                    node.getFileList().entrySet().forEach(entry -> System.out.printf("%s: %s\n", entry.getKey(), entry.getValue()));
                     break;
                 default:
                     System.out.println("Unknown command: "+command[0]);
