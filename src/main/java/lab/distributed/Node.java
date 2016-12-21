@@ -836,7 +836,7 @@ public class Node implements NodeInterface {
                 e.printStackTrace();
             }
         }
-        System.out.println("agent is gestart op deze node");
+        //System.out.println("agent is gestart op deze node");
         class Temp implements Runnable {
             Node node;
 
@@ -876,7 +876,7 @@ public class Node implements NodeInterface {
         }
         Thread t = new Thread(new Temp(Node.this));
         t.start();
-        System.out.println("agent is doorgegeven naar volgende node");
+        //System.out.println("agent is doorgegeven naar volgende node");
     }
 
     public HashMap<String, Boolean> getFileList()
@@ -1008,7 +1008,7 @@ public class Node implements NodeInterface {
                     }
                 }
                 Random rand = new Random();
-                String downloadArray[] = (String[]) downloadLocations.toArray();    //downloadlocaties van een set naar een array casten zodat we een random locatie kunnen teruggeven
+                String downloadArray[] = downloadLocations.toArray(new String[downloadLocations.size()]);    //downloadlocaties van een set naar een array casten zodat we een random locatie kunnen teruggeven
                 String IP = downloadArray[rand.nextInt(downloadLocations.size())];
                 requestFile(IP, filename);                                          //file wordt opgeslagen in eigen replicated directory
                 fileEntry.addDownloadLocation(location);                            //na download worden we zelf een downloadlocatie
@@ -1048,5 +1048,4 @@ public class Node implements NodeInterface {
         }
      return -1;
     }
-
 }
