@@ -100,4 +100,11 @@ public interface NodeInterface extends Remote {
      */
     HashMap<String, FileEntry> getReplicatedFiles() throws RemoteException;
 
+
+    /**
+     * geeft de hash van deze node terug
+     * @return de hash van deze node
+     * @throws RemoteException
+     */
+    int getMyHash() throws RemoteException;
 }

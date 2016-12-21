@@ -3,6 +3,8 @@ package lab.distributed;
 import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Een bestandsfiche van een bestand
@@ -15,7 +17,7 @@ public class FileEntry implements Comparable<FileEntry>, Serializable {
     private String fileName;
     private Integer hash;
     private boolean localIsOwner = false; //dit moet false gezet worden wanneer er een nieuwe node in het netwerk komt en dit niet meer klopt!!!
-    private ArrayList<String> downloadLocations; // dit is een lijst van ips van de downloadlocaties
+    private HashSet<String> downloadLocations; // dit is een lijst van ips van de downloadlocaties
 
     public FileEntry(String name, String local, String owner, String replicated){
         fileName=name;
@@ -23,7 +25,7 @@ public class FileEntry implements Comparable<FileEntry>, Serializable {
         this.local=local;
         this.owner=owner;
         this.replicated=replicated;
-        this.downloadLocations = new ArrayList<String>();
+        this.downloadLocations = new HashSet<String>();
         if(replicated!=null)
             downloadLocations.add(replicated);
     }
@@ -43,7 +45,7 @@ public class FileEntry implements Comparable<FileEntry>, Serializable {
             return false;
     }
 
-    public ArrayList<String> getDownloadLocations()
+    public HashSet<String> getDownloadLocations()
     {
         return downloadLocations;
     }
