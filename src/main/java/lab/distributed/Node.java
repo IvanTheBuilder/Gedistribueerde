@@ -681,7 +681,11 @@ public class Node implements NodeInterface {
             case "ENTRY_CREATE":
                 try {
                     String owner = nameServer.getOwner(fileName);//bij fileserver opvragen op welke node dit bestand gerepliceerd moet worden IP krijgen we terug
-                    FileEntry fileEntry = new FileEntry(fileName, location, owner, owner);
+                    FileEntry fileEntry = null;
+                    if (!owner.equals(location))    //replicate node is zelfde als owner
+                        fileEntry = new FileEntry(fileName, location, owner, owner);
+                    else                            //replicate node is vorige node terwijl ik zelf owner ben
+                        fileEntry = new FileEntry(fileName, location, owner, getIPByHash(previousNode));
                     localFiles.put(fileName, fileEntry);
                     NodeInterface nodeInterface = getNode(owner);
                     nodeInterface.replicateNewFile(fileEntry);
@@ -1033,6 +1037,7 @@ public class Node implements NodeInterface {
         return localFiles;
     }
 
+    @Override
     public String getLocation() {
         return location;
     }
@@ -1048,4 +1053,19 @@ public class Node implements NodeInterface {
         }
      return -1;
     }
+
+    private String getIPByHash(int hash)
+    {
+        NodeInterface node = null;
+        try {
+            node = getNode(hash);
+            return node.getLocation();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+            System.out.println("node met hash: " + hash + " bestaat niet.");
+        }
+        return "";
+    }
+
+
 }

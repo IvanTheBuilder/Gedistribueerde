@@ -107,4 +107,11 @@ public interface NodeInterface extends Remote {
      * @throws RemoteException
      */
     int getMyHash() throws RemoteException;
+
+    /**
+     *
+     * @return het ip adres van deze node
+     * @throws RemoteException
+     */
+    public String getLocation() throws RemoteException;
 }
