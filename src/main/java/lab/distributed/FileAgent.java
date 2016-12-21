@@ -46,17 +46,24 @@ public class FileAgent implements AgentInterface, Serializable {
              */
 
             /*
-            Eerst gaan we de outdated fileList van de huidige node opvragen.
+            We gaan eerst de lijst van locale files op de huidige node af om te kijken of
+            er nieuwe bestanden zijn bijgekomen, zoja voegen we deze toe aan de lockedFilesMap
+            en zetten we de waarde op -1 om aan te geven dat er geen enkele node een lock
+            heeft op dit bestand. Als er al een entry bestaat voor het bestand wordt
+            er niets aangepast.
+             */
+            HashMap<String, FileEntry> currentNodeLocalFiles = currentNode.getLocalFiles();
+            for (Map.Entry<String, FileEntry> entry : currentNodeLocalFiles.entrySet()) {
+                lockedFilesMap.putIfAbsent(entry.getKey(), -1);
+            }
+
+            /*
+            Vervolgens gaan we de outdated fileList van de huidige node opvragen.
             We gaan na of er een lock werd aangevraagd voor een bepaald bestand.
             Op het einde geven we een nieuwe lijst door aan de huidige node.
             Vermits de huidige node in zijn outdated fileList nog geen notie
             heeft van zijn eigen nieuwe bestanden kan hij daar onmogenlijk al
-            een lock voor hebben aangevraagd en dus is er geen probleem als we
-            zijn nieuwe files pas toevoegen (aan de lijst van de agent) nadat
-            we gecontroleerd hebben op aanvragen voor locks. De huidige node
-            heeft ook nog geen kennis van andere nieuwe bestanden in het netwerk
-            en kan ook daar onmogenlijk een lock op hebben aangevraagd wat dus
-            betekent dat we gerust de nieuwe fileList pas op het einde kunnen builden.
+            een lock voor hebben aangevraagd.
              */
             HashMap<String, Boolean> currentNodeFileList = currentNode.getFileList();
             for (Map.Entry<String, Boolean> entry : currentNodeFileList.entrySet()) {
@@ -113,18 +120,6 @@ public class FileAgent implements AgentInterface, Serializable {
                     if (lockApproved)
                         currentNode.approveFileLock(entry.getKey());
                 }
-            }
-
-            /*
-            We gaan nu de lijst van locale files op de huidige node af om te kijken of
-            er nieuwe bestanden zijn bijgekomen, zoja voegen we deze toe aan de lockedFilesMap
-            en zetten we de waarde op -1 om aan te geven dat er geen enkele node een lock
-            heeft op dit bestand. Als er al een entry bestaat voor het bestand wordt
-            er niets aangepast.
-             */
-            HashMap<String, FileEntry> currentNodeLocalFiles = currentNode.getLocalFiles();
-            for (Map.Entry<String, FileEntry> entry : currentNodeLocalFiles.entrySet()) {
-                lockedFilesMap.putIfAbsent(entry.getKey(), -1);
             }
 
             /*
