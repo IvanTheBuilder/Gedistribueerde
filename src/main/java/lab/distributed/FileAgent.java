@@ -63,7 +63,7 @@ public class FileAgent implements AgentInterface, Serializable {
             Op het einde geven we een nieuwe lijst door aan de huidige node.
             Vermits de huidige node in zijn outdated fileList nog geen notie
             heeft van zijn eigen nieuwe bestanden kan hij daar onmogenlijk al
-            een lock voor hebben aangevraagd.
+            een lock hebben aangevraagd.
              */
             HashMap<String, Boolean> currentNodeFileList = currentNode.getFileList();
             for (Map.Entry<String, Boolean> entry : currentNodeFileList.entrySet()) {
