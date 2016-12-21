@@ -2,6 +2,7 @@ package lab.distributed;
 
 import java.io.*;
 import java.net.*;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.rmi.AlreadyBoundException;
@@ -176,7 +177,6 @@ public class Node implements NodeInterface {
                 fileEntry.removeDownloadLocation(location);
                 updateEntryAllNodes(fileEntry);
             }
-            //TODO: Ivan: laatste bestanden worden niet verzonden bij een exit, methode replicatenewfile wordt wel aangeroepen maar het bestand zelf wordt niet verzonden over tcp
         }
         if (nameServer != null)
             deleteNode(hashName(name));                     //node verwijderen uit de nameserver
@@ -190,7 +190,11 @@ public class Node implements NodeInterface {
             entry.removeDownloadLocation(location);
             replicatedFiles.remove(naam);
             updateEntryAllNodes(entry);
-            //TODO: verwijderen van harde schijf
+            try {
+                Files.delete(Paths.get(REPLICATED_DIRECTORY+ File.separator + naam ));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             return true;
         } else
             return false;
@@ -491,7 +495,7 @@ public class Node implements NodeInterface {
             DataOutputStream dataOutputStream = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
             dataOutputStream.writeUTF("send");
             dataOutputStream.writeUTF(filename);
-            FileOutputStream fileOutputStream = new FileOutputStream("." + File.separator + REPLICATED_DIRECTORY + File.separator + filename);//TODO mogelijk is "."+file.seperator niet nodig.
+            FileOutputStream fileOutputStream = new FileOutputStream("." + File.separator + REPLICATED_DIRECTORY + File.separator + filename);
             byte[] bytes = new byte[8192];
             int count;
             while ((count = dataInputStream.read(bytes)) > 0) {
@@ -524,7 +528,7 @@ public class Node implements NodeInterface {
             DataOutputStream dataOutputStream = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
             dataOutputStream.writeUTF("receive");
             dataOutputStream.writeUTF(filename);
-            FileInputStream fileInputStream = new FileInputStream("." + File.separator + path + File.separator + filename);//TODO mogelijk is "."+file.seperator niet nodig.
+            FileInputStream fileInputStream = new FileInputStream("." + File.separator + path + File.separator + filename);
             byte[] bytes = new byte[8192];
             int count;
             while ((count = fileInputStream.read(bytes)) > 0) {
@@ -916,7 +920,6 @@ public class Node implements NodeInterface {
      * @param entry de aangepaste entry
      */
     private void updateEntryAllNodes(FileEntry entry) {
-        //TODO: doet soms dubbel+errors zijn geen errors
         String naam = entry.getFileName();
         for (String IP : entry.getDownloadLocations()) {
             try {
