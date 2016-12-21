@@ -977,16 +977,19 @@ public class Node implements NodeInterface {
             NodeInterface node = null;
             HashSet<String> downloadLocations = null;
             String owner = null;
+            FileEntry fileEntry = null;
             try {
                 owner = nameServer.getOwner(filename);
                 node = getNode(owner);
                 HashMap<String, FileEntry> files = node.getReplicatedFiles();
                 if (files.containsKey(filename)) {
-                    downloadLocations = files.get(filename).getDownloadLocations();
+                    fileEntry = files.get(filename);
+                    downloadLocations = fileEntry.getDownloadLocations();
                 } else {
                     files = node.getLocalFiles();
                     if (files.containsKey(filename)) {
-                        downloadLocations = files.get(filename).getDownloadLocations();
+                        fileEntry = files.get(filename);
+                        downloadLocations = fileEntry.getDownloadLocations();
                     } else {
                         System.out.println("ERROR: bestand bestaat nergens op de owner, noch in de local, noch in de replicated files");
                         return null;
@@ -996,6 +999,8 @@ public class Node implements NodeInterface {
                 String downloadArray[] = (String[]) downloadLocations.toArray();    //downloadlocaties van een set naar een array casten zodat we een random locatie kunnen teruggeven
                 String IP = downloadArray[rand.nextInt(downloadLocations.size())];
                 requestFile(IP, filename);                                          //file wordt opgeslagen in eigen replicated directory
+                fileEntry.addDownloadLocation(location);                            //na download worden we zelf een downloadlocatie
+                updateEntryAllNodes(fileEntry);
                 releaseFileLock(filename);
                 return new File(REPLICATED_DIRECTORY + File.separator + filename);
             } catch (RemoteException e) {
