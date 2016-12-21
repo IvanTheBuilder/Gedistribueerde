@@ -100,7 +100,7 @@ public class Node implements NodeInterface {
     public void deleteNode(int hash) {
         try {
             if (!nameServer.removeNode(hash))
-                System.out.println("Node met hash: " + hash + " bestaat niet en kan dus niet verwijderd worden");
+                System.out.println("Node with: "+hash+" doesn't exist, removal impossible!");
         } catch (RemoteException e) {
             e.printStackTrace();
         }
@@ -135,10 +135,10 @@ public class Node implements NodeInterface {
             e.printStackTrace();
             failure(previousNode);
         }
-        System.out.println("Neighbours were updated");
+        System.out.println("Neighbours were updated.");
         if (previousNode != -1 && nextNode != -1) { //Eerst nakijken of node wel volledig is opgestart
             //bestanden die hier gerepliceerd staan, repliceren naar de vorige node
-            System.out.println("replicating my files to previous node...");
+            System.out.println("Replicating my files to previous node...");
 
             for (HashMap.Entry<String, FileEntry> entry : replicatedFiles.entrySet()) {
                 fileEntry = entry.getValue();           //elke bestandsfiche een voor een aflopen
@@ -153,7 +153,7 @@ public class Node implements NodeInterface {
                 try { //bestandsfiche doorsturen naar lokale node
                     node = getNode(fileEntry.getLocal());   //node waar het bestand lokaal staat
                     if (!node.changeLocalEntry(fileEntry.getFileName(), fileEntry))
-                        System.out.println("ERROR: bestand kan niet aangepast worden want het bestaat niet...");
+                        System.out.println("ERROR: File doesn't exist, modification impossible!");
                 } catch (RemoteException e) {
                     e.printStackTrace();
                     failure(getHashByIP(fileEntry.getLocal()));
@@ -223,7 +223,7 @@ public class Node implements NodeInterface {
             entry.setReplicated(location);
             entry.addDownloadLocation(location);
             replicatedFiles.put(name, entry);
-            System.out.println("bestand met naam " + entry.getFileName() + " wordt gerepliceerd naar mij en heeft als owner: " + entry.getOwner() + " en heeft als hash " + entry.getHash());
+            System.out.println("File named " + entry.getFileName() + " wordt gerepliceerd naar mij en heeft als owner: " + entry.getOwner() + " en heeft als hash " + entry.getHash());
         } else { //bestand bestaat lokaal en wordt gerepliceerd naar de vorige
             entry.setOwner(location);
             entry.setLocalIsOwner(true);
@@ -498,6 +498,7 @@ public class Node implements NodeInterface {
             FileOutputStream fileOutputStream = new FileOutputStream("." + File.separator + REPLICATED_DIRECTORY + File.separator + filename);
             byte[] bytes = new byte[8192];
             int count;
+            //TODO: hier ergens kapot
             while ((count = dataInputStream.read(bytes)) > 0) {
                 fileOutputStream.write(bytes, 0, count);
             }
