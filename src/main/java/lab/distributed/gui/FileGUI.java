@@ -29,7 +29,7 @@ public class FileGUI extends JFrame {
 
     public FileGUI(Node node) {
         this.setTitle("Gedistribueerde Systemen LOLOLOLOLO");
-        this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        this.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         try {
             UIManager.setLookAndFeel(
                     UIManager.getSystemLookAndFeelClassName());
@@ -118,6 +118,17 @@ public class FileGUI extends JFrame {
                 }
             }
         }).start();
+        this.addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+                if (JOptionPane.showConfirmDialog(FileGUI.this,
+                        "Are you sure you want to leave?", "Are you sure you want to leave?",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION){
+                    node.exit();
+                }
+            }
+        });
     }
 
     public static void main(String[] args) {

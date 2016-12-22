@@ -64,6 +64,8 @@ public class Node implements NodeInterface {
         System.out.println("Fileserver ✓");
         System.out.println("Waiting for replies...");
         sendBootstrapBroadcast();   //jezelf broadcasten over het netwerk
+        FileGUI fileGUI = new FileGUI(this);
+        fileGUI.setVisible(true);
     }
 
     /**
@@ -378,8 +380,7 @@ public class Node implements NodeInterface {
                 exit();
                 System.exit(1);
             }
-            FileGUI fileGUI = new FileGUI(this);
-            fileGUI.setVisible(true);
+
             System.out.println("Watchdir ✓");
         }
     }
