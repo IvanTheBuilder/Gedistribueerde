@@ -105,7 +105,7 @@ public class FileGUI extends JFrame {
                         e.printStackTrace();
                     }
                     if(node != null && node.getFileList() != null) {
-                        if(lastArray != node.getFileList().keySet().toArray(new String[node.getFileList().size()])) {
+                        if(lastArray.length != node.getFileList().size()) {
                             lastArray = node.getFileList().keySet().toArray(new String[node.getFileList().size()]);
                             list1.setListData(lastArray);
                         }
