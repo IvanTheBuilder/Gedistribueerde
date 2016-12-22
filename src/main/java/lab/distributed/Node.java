@@ -982,6 +982,8 @@ public class Node implements NodeInterface {
      * @return het bestand
      */
     public File displayFile(String filename) {
+        if(!fileList.containsKey(filename))
+            return null;
         if(localFiles.containsKey(filename))
             return new File(LOCAL_DIRECTORY +File.separator +filename);
         else if(replicatedFiles.containsKey(filename))
