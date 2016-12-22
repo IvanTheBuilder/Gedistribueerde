@@ -1,12 +1,15 @@
 package lab.distributed.gui;
 
-import lab.distributed.FileEntry;
+import lab.distributed.Node;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.IOException;
 
 /**
  * Created by Ivan on 20/12/2016.
@@ -20,8 +23,10 @@ public class FileGUI extends JFrame {
     private JLabel namelabel;
     private JLabel ownerlabel;
     private JLabel replicatedlabel;
+    private Node node;
+    private String[] lastArray = new String[]{};
 
-    public FileGUI() {
+    public FileGUI(Node node) {
         this.setTitle("Gedistribueerde Systemen LOLOLOLOLO");
         this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         try {
@@ -43,9 +48,14 @@ public class FileGUI extends JFrame {
         pack();
         openButton.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
-                System.out.println("Geklikt op open knop! File entry is "+list1.getSelectedValue());
-                //TODO: open deze fileentry
+            public void actionPerformed(ActionEvent event) {
+                File file = node.displayFile((String) list1.getSelectedValue());
+                try {
+                    if(file != null)
+                        Desktop.getDesktop().open(file);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         });
 
@@ -70,14 +80,10 @@ public class FileGUI extends JFrame {
             public void valueChanged(ListSelectionEvent e) {
                 if(!e.getValueIsAdjusting()) {
                     if(list1.getSelectedValue() != null) {
-                        FileEntry fileEntry = (FileEntry) list1.getSelectedValue();
                         openButton.setEnabled(true);
                         deleteButton.setEnabled(true);
                         //TODO: check if dit bestand lokaal staat. Zo niet disable deze knop, zo wel enable deze knop
                         deleteLocalButton.setEnabled(false);
-                        namelabel.setText(fileEntry.getFileName());
-                        ownerlabel.setText(fileEntry.getOwner());
-                        replicatedlabel.setText(fileEntry.getReplicated());
                     } else {
                         openButton.setEnabled(false);
                         deleteLocalButton.setEnabled(false);
@@ -87,19 +93,41 @@ public class FileGUI extends JFrame {
                 }
             }
         });
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while(true) {
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    if(node != null && node.getFileList() != null) {
+                        if(lastArray != node.getFileList().keySet().toArray(new String[node.getFileList().size()])) {
+                            lastArray = node.getFileList().keySet().toArray(new String[node.getFileList().size()]);
+                            list1.setListData(lastArray);
+                        }
+                    }
+                }
+            }
+        });
     }
 
     public static void main(String[] args) {
-        FileGUI fileGUI = new FileGUI();
+        FileGUI fileGUI = new FileGUI(null);
         fileGUI.setVisible(true);
-        fileGUI.refreshFileList(new FileEntry[]{new FileEntry("Testnaam", "lokaal", "Owner", "Replicated"), new FileEntry("Testnaam2", "lokaal", "Owner", "Replicated")});
+
+     //   fileGUI.refreshFileList(new FileEntry[]{new FileEntry("Testnaam", "lokaal", "Owner", "Replicated"), new FileEntry("Testnaam2", "lokaal", "Owner", "Replicated")});
     }
 
     //TODO: roep deze methode aan telkens wanneer er iets veranderd in de filelist
-    public void refreshFileList(FileEntry[] fileEntries) {
+    public void refreshFileList(String[] fileEntries) {
         list1.setListData(fileEntries);
 
     }
+
+
 
 
 }
