@@ -81,12 +81,14 @@ public class FileAgent implements AgentInterface, Serializable {
                 In de else branch zal de -1 hash dan vervangen worden door de hash van de huidige node als deze een lock
                 heeft aangevraagd voor het beschouwde bestand.
                  */
-                int ownerOfLock = lockedFilesMap.putIfAbsent(entry.getKey(), entry.getValue() ? currentNode.getMyHash() : -1);
+                //int ownerOfLock = lockedFilesMap.putIfAbsent(entry.getKey(), entry.getValue() ? currentNode.getMyHash() : -1);
+                int ownerOfLock = lockedFilesMap.get(entry.getKey());
+
                 //boolean currentIsFirst = currentNode.getMyHash() < currentNode.getPreviousNode();
                 //boolean lastNodeIsGone = currentIsFirst && ownerOfLock > currentNode.getPreviousNode();
                 boolean isReplaced = false;
                 //if ((lastNodeIsGone || (currentNode.getMyHash() > ownerOfLock)) && (ownerOfLock != -1)) {
-                if (!currentNode.nodeIsPresent(ownerOfLock) && (ownerOfLock != -1)) {
+                if (!currentNode.nodeIsPresent(ownerOfLock) && (ownerOfLock != -1)) { //als owner gefaald is
                     //TODO: print statements verwijderen na testen
                     System.out.println("The file agent noticed node with hash: "+ownerOfLock+" has exited or failed");
                     System.out.println("The lock of "+ownerOfLock+" on "+entry.getKey()+" has been released");
@@ -106,7 +108,7 @@ public class FileAgent implements AgentInterface, Serializable {
                 Deze branch is (onder andere) altijd geldig als u zelf een lock bezit op een bestand.
                 Ook als de huidige node een lock heeft maar deze wil vrijgeven komen we hier terecht.
                  */
-                else {
+                else { //normale situatie
                     /*
                     In het geval dat er nog niemand een lock had op een bestand (de oude waarde
                     in de entry = -1) zal deze vervangen worden door een nieuwe waarde als de huidige node

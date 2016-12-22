@@ -1020,11 +1020,11 @@ public class Node implements NodeInterface {
                 String downloadArray[] = downloadLocations.toArray(new String[downloadLocations.size()]);    //downloadlocaties van een set naar een array casten zodat we een random locatie kunnen teruggeven
                 String IP = downloadArray[rand.nextInt(downloadLocations.size())];
                 requestFile(IP, filename);                                          //file wordt opgeslagen in eigen replicated directory
-                System.out.println(filename+" was donwloaded to replicated folder");
+                System.out.println(filename+" was downloaded to replicated folder");
                 fileEntry.addDownloadLocation(location);                            //na download worden we zelf een downloadlocatie
-                updateEntryAllNodes(fileEntry);
                 releaseFileLock(filename);
                 System.out.println("----------------------------------");
+                updateEntryAllNodes(fileEntry);
                 return new File(REPLICATED_DIRECTORY + File.separator + filename);
             } catch (RemoteException e) {
                 e.printStackTrace();
