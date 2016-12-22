@@ -3,7 +3,6 @@ package lab.distributed;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.rmi.RemoteException;
 import java.util.Scanner;
 
 /**
@@ -68,6 +67,7 @@ public class StartNode {
                         System.out.println("Trying to request " + filename);
                         File file = node.displayFile(filename);
                         try {
+                            if(file != null)
                             Desktop.getDesktop().open(file);
                         } catch (IOException e) {
                             e.printStackTrace();
