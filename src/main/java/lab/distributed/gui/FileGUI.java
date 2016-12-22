@@ -10,6 +10,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import java.rmi.RemoteException;
 
 /**
  * Created by Ivan on 20/12/2016.
@@ -63,7 +64,11 @@ public class FileGUI extends JFrame {
         deleteLocalButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                System.out.println("Geklikt op deleteLocal knop! File entry is "+list1.getSelectedValue());
+                try {
+                    node.deleteReplicatedFile((String) list1.getSelectedValue());
+                } catch (RemoteException e1) {
+                    e1.printStackTrace();
+                }
                 //TODO: delete deze file lokaal
             }
         });
