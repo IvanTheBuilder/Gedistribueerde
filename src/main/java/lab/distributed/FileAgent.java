@@ -98,7 +98,7 @@ public class FileAgent implements AgentInterface, Serializable {
                     zoniet is er nooit een probleem en komen we nooit in deze branch.
                      */
                     lockApproved = lockedFilesMap.replace(entry.getKey(), ownerOfLock, entry.getValue() ? currentNode.getMyHash() : -1);
-                    if (lockApproved)
+                    if (lockApproved && entry.getValue())
                         currentNode.approveFileLock(entry.getKey());
                 }
                 /*
@@ -118,7 +118,7 @@ public class FileAgent implements AgentInterface, Serializable {
                      */
                     boolean isOwnerOfLock = lockedFilesMap.get(entry.getKey()) == currentNode.getMyHash();
                     lockApproved = lockedFilesMap.replace(entry.getKey(), isOwnerOfLock ? currentNode.getMyHash() : -1, entry.getValue() ? currentNode.getMyHash() : -1);
-                    if (lockApproved)
+                    if (lockApproved && entry.getValue())
                         currentNode.approveFileLock(entry.getKey());
                 }
             }

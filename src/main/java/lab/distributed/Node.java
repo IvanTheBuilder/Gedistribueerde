@@ -36,7 +36,7 @@ public class Node implements NodeInterface {
     private static final Path LOCAL_DIRECTORY = Paths.get("local");
     private static final Path REPLICATED_DIRECTORY = Paths.get("replicated");
     private HashMap<String, Boolean> fileList = new HashMap<String, Boolean>();
-    private ArrayList<String> lockedFiles = new ArrayList<>();
+    private HashSet<String> lockedFiles = new HashSet<>();
 
     /**
      * De constructor gaat een nieuwe node aanmaken in de nameserver met de gekozen naam en het ip adres van de machine waarop hij gestart wordt.
@@ -231,7 +231,7 @@ public class Node implements NodeInterface {
             } else {
                 try {
                     NodeInterface node = getNode(previousNode);
-                    System.out.println("bestand wordt gerepliceerd naar vorige node want het staat lokaal bij mij");
+                    System.out.println(entry.getFileName()+" wordt gerepliceerd naar vorige node want het staat lokaal bij mij");
                     node.replicateNewFile(entry);
                 } catch (RemoteException e) {
                     e.printStackTrace();
@@ -497,10 +497,9 @@ public class Node implements NodeInterface {
             dataOutputStream.writeUTF("send");
             dataOutputStream.writeUTF(filename);
             dataOutputStream.flush();
-            FileOutputStream fileOutputStream = new FileOutputStream("." + File.separator + REPLICATED_DIRECTORY + File.separator + filename);
+            FileOutputStream fileOutputStream = new FileOutputStream(REPLICATED_DIRECTORY + File.separator + filename);
             byte[] bytes = new byte[8192];
             int count;
-            //TODO: hier ergens kapot
             while ((count = dataInputStream.read(bytes)) > 0) {
                 fileOutputStream.write(bytes, 0, count);
             }
@@ -1070,6 +1069,4 @@ public class Node implements NodeInterface {
         }
         return "";
     }
-
-
 }
