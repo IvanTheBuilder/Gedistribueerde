@@ -966,7 +966,7 @@ public class Node implements NodeInterface {
             if (getNode(IP).changeLocalEntry(naam, entry))
                 ;//System.out.println("local entry " + naam + " is aangepast op node " + IP);
             else
-                System.out.println("ERROR: replicated entry " + naam + " non-existant on node " + IP + " but it should!");
+                System.out.println("ERROR: local entry " + naam + " non-existant on node " + IP + " but it should!");
         } catch (RemoteException e) {
             e.printStackTrace();
             failure(getHashByIP(IP));
