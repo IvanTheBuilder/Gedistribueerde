@@ -87,7 +87,7 @@ public class Node implements NodeInterface {
             System.arraycopy(nameData, 0, message, addressData.length, nameData.length);
             sendMulticast(message);
         } catch (UnknownHostException e) {
-            System.out.println("Failed to send bootstrap broadcast. Aborting...");
+            System.out.println("ERROR: Failed to send bootstrap broadcast. Aborting...");
             System.exit(1);
         }
     }
@@ -100,7 +100,7 @@ public class Node implements NodeInterface {
     public void deleteNode(int hash) {
         try {
             if (!nameServer.removeNode(hash))
-                System.out.println("Node with: "+hash+" doesn't exist, removal impossible!");
+                System.out.println("ERROR: Node with: "+hash+" doesn't exist, removal impossible!");
         } catch (RemoteException e) {
             e.printStackTrace();
         }
@@ -120,7 +120,7 @@ public class Node implements NodeInterface {
 
         System.out.println("Leaving the network and updating my neighbours...");
         try {
-            if (previousNode != -1 && nextNode != -1) { //Eerst nakijken of node wel volledig is opgestart
+            if (previousNode != -1 && nextNode != -1) {         //Eerst nakijken of node wel volledig is opgestart
                 getNode(nextNode).setPreviousNode(previousNode);//naar de next node het id van de previous node sturen
             }
         } catch (RemoteException e) {
@@ -242,6 +242,7 @@ public class Node implements NodeInterface {
             sendFile(previousNode, entry.getFileName(), LOCAL_DIRECTORY);
         }
         updateEntryAllNodes(entry);
+        System.out.println("---------------------------------------------------");
     }
 
     /**
@@ -253,7 +254,7 @@ public class Node implements NodeInterface {
             multicastSocket = new MulticastSocket(MULTICAST_PORT);
             multicastSocket.joinGroup(InetAddress.getByName(GROUP));
         } catch (IOException e) {
-            System.out.println("Failed to start multicast, perhaps already running...? Aborting...");
+            System.out.println("ERROR: Failed to start multicast, perhaps already running...? Aborting...");
             System.exit(1);
         }
 
@@ -372,7 +373,7 @@ public class Node implements NodeInterface {
             try {
                 watchDir = new WatchDir(LOCAL_DIRECTORY, false, this);//watchdir class op LOCAL_DIRECTORY, niet recursief, op deze node
             } catch (IOException e) {
-                System.out.println("Failed to start watchdir, aborting...");
+                System.out.println("ERROR: Failed to start watchdir, aborting...");
                 exit();
                 System.exit(1);
             }
@@ -401,6 +402,7 @@ public class Node implements NodeInterface {
             deleteNode(hash);                                 //node verwijderen
             startAgent(agent);
             System.out.println("Failure from "+hash+" was handled.");
+            System.out.println("-----------------------------------------------");
         } catch (RemoteException e) {
             e.printStackTrace();
         }
@@ -588,7 +590,7 @@ public class Node implements NodeInterface {
             registry.bind("NodeInterface", nodeInterface);
             System.out.println("Started RMI. Ready for connections...");
         } catch (RemoteException | AlreadyBoundException e) {
-            System.out.println("RMI not running or hasn't been restarted. Aborting...");
+            System.out.println("ERROR: RMI not running or hasn't been restarted. Aborting...");
             System.exit(1);
         }
     }
@@ -641,7 +643,7 @@ public class Node implements NodeInterface {
                 try {
                     watchDir = new WatchDir(LOCAL_DIRECTORY, false, this);//watchdir class op LOCAL_DIRECTORY, niet recursief, op deze node
                 } catch (IOException e) {
-                    System.out.println("Failed to start watchdir, aborting...");
+                    System.out.println("ERROR: Failed to start watchdir, aborting...");
                     exit();
                     System.exit(1);
                 }
@@ -677,7 +679,6 @@ public class Node implements NodeInterface {
      */
     public void directoryChange(String eventType, String fileName) {
         String node;
-        System.out.println("proberen om een event te behandelen");
         switch (eventType) {
             case "ENTRY_CREATE":
                 try {
@@ -691,14 +692,13 @@ public class Node implements NodeInterface {
                     NodeInterface nodeInterface = getNode(owner);
                     nodeInterface.replicateNewFile(fileEntry);
                     if (!owner.equals(location)) {
-                        System.out.println("bestand verzenden aanroepen");
                         sendFile(owner, fileName, LOCAL_DIRECTORY);
-                        System.out.println("bestand is verzonden naar replicated");
+                        System.out.println(fileName +" is verzonden naar replicated");
                     } else {
-                        System.out.println("bestand verzenden aanroepen");
                         sendFile(previousNode, fileName, LOCAL_DIRECTORY);
-                        System.out.println("bestand is verzonden naar previous node");
+                        System.out.println(fileName + " is verzonden naar previous node");
                     }
+                    System.out.println("---------------------------------");
 
                 } catch (RemoteException e) {
                     System.out.println("RMI Exception bij replicatie. Node wordt beschouwd als gefaald.");
@@ -917,6 +917,7 @@ public class Node implements NodeInterface {
         if (lockedFiles.contains(filename)) {
             lockedFiles.remove(filename);
             fileList.put(filename, false);
+            System.out.println("lock on "+filename+" was released");
             return true;
         } else
             return false;
@@ -941,7 +942,7 @@ public class Node implements NodeInterface {
         for (String IP : entry.getDownloadLocations()) {
             try {
                 if (getNode(IP).changeReplicatedEntry(naam, entry))
-                    System.out.println("replicated entry " + naam + " is aangepast op node " + IP);
+                    ;//System.out.println("replicated entry " + naam + " is aangepast op node " + IP);
                 else
                     System.out.println("ERROR: replicated entry " + naam + " bestaat niet op node " + IP + " maar zit wel in de downloadlocaties");
             } catch (RemoteException e) {
@@ -952,7 +953,7 @@ public class Node implements NodeInterface {
         String IP = entry.getLocal();
         try {
             if (getNode(IP).changeLocalEntry(naam, entry))
-                System.out.println("local entry " + naam + " is aangepast op node " + IP);
+                ;//System.out.println("local entry " + naam + " is aangepast op node " + IP);
             else
                 System.out.println("ERROR: local entry " + naam + " bestaat niet op node " + IP + " maar dit zou wel moeten");
         } catch (RemoteException e) {
@@ -985,7 +986,7 @@ public class Node implements NodeInterface {
         else if(replicatedFiles.containsKey(filename))
             return new File(REPLICATED_DIRECTORY + File.separator +filename);
         else {
-            System.out.println("requesting filelock...");
+            System.out.println("requesting filelock on "+filename+"...");
             while (!requestFileLock(filename)) ;          // lock blijven aanvragen tot bestand in onze filelist staat
             System.out.println("filelock is requested");
             while (!lockedFiles.contains(filename)) {
@@ -1016,9 +1017,11 @@ public class Node implements NodeInterface {
                 String downloadArray[] = downloadLocations.toArray(new String[downloadLocations.size()]);    //downloadlocaties van een set naar een array casten zodat we een random locatie kunnen teruggeven
                 String IP = downloadArray[rand.nextInt(downloadLocations.size())];
                 requestFile(IP, filename);                                          //file wordt opgeslagen in eigen replicated directory
+                System.out.println(filename+" was donwloaded to replicated folder");
                 fileEntry.addDownloadLocation(location);                            //na download worden we zelf een downloadlocatie
                 updateEntryAllNodes(fileEntry);
                 releaseFileLock(filename);
+                System.out.println("----------------------------------");
                 return new File(REPLICATED_DIRECTORY + File.separator + filename);
             } catch (RemoteException e) {
                 e.printStackTrace();
@@ -1050,7 +1053,7 @@ public class Node implements NodeInterface {
             return node.getMyHash();
         } catch (RemoteException e) {
             e.printStackTrace();
-            System.out.println("node met ip: " + IP + " bestaat niet.");
+            System.out.println("ERROR: node met ip: " + IP + " bestaat niet.");
         }
      return -1;
     }
@@ -1063,7 +1066,7 @@ public class Node implements NodeInterface {
             return node.getLocation();
         } catch (RemoteException e) {
             e.printStackTrace();
-            System.out.println("node met hash: " + hash + " bestaat niet.");
+            System.out.println("ERROR: node met hash: " + hash + " bestaat niet.");
         }
         return "";
     }
