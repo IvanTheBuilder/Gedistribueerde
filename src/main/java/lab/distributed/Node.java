@@ -378,7 +378,7 @@ public class Node implements NodeInterface {
                 exit();
                 System.exit(1);
             }
-            FileGUI fileGUI = new FileGUI(null);
+            FileGUI fileGUI = new FileGUI(this);
             fileGUI.setVisible(true);
             System.out.println("Watchdir ✓");
         }
