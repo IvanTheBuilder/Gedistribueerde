@@ -13,7 +13,6 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
-import java.util.function.BooleanSupplier;
 
 /**
  * Een node in system y
@@ -497,6 +496,7 @@ public class Node implements NodeInterface {
             DataOutputStream dataOutputStream = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
             dataOutputStream.writeUTF("send");
             dataOutputStream.writeUTF(filename);
+            dataOutputStream.flush();
             FileOutputStream fileOutputStream = new FileOutputStream("." + File.separator + REPLICATED_DIRECTORY + File.separator + filename);
             byte[] bytes = new byte[8192];
             int count;
