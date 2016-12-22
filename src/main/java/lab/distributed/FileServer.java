@@ -64,9 +64,11 @@ public class FileServer {
                                 while ((count = in.read(bytes)) > 0) {
                                     fileOutputStream.write(bytes, 0, count);
                                 }
+                                fileOutputStream.close();
                                 out.close();
                                 in.close();
                                 clientSocket.close();
+
                             }
                         }
 
