@@ -1069,4 +1069,13 @@ public class Node implements NodeInterface {
         }
         return "";
     }
+
+    public boolean nodeIsPresent(Integer hash) {
+        try {
+            return nameServer.nodeIsPresent(hash);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }

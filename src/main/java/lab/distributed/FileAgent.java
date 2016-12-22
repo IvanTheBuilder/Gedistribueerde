@@ -82,10 +82,11 @@ public class FileAgent implements AgentInterface, Serializable {
                 heeft aangevraagd voor het beschouwde bestand.
                  */
                 int ownerOfLock = lockedFilesMap.putIfAbsent(entry.getKey(), entry.getValue() ? currentNode.getMyHash() : -1);
-                boolean currentIsFirst = currentNode.getMyHash() < currentNode.getPreviousNode();
-                boolean lastNodeIsGone = currentIsFirst && ownerOfLock > currentNode.getPreviousNode();
-                boolean lockApproved = false;
-                if ((lastNodeIsGone || (currentNode.getMyHash() > ownerOfLock)) && (ownerOfLock != -1)) {
+                //boolean currentIsFirst = currentNode.getMyHash() < currentNode.getPreviousNode();
+               // boolean lastNodeIsGone = currentIsFirst && ownerOfLock > currentNode.getPreviousNode();
+                boolean isReplaced = false;
+                //if ((lastNodeIsGone || (currentNode.getMyHash() > ownerOfLock)) && (ownerOfLock != -1)) {
+                if (!currentNode.nodeIsPresent(ownerOfLock)) {
                     //TODO: print statements verwijderen na testen
                     System.out.println("The file agent noticed node with hash: "+ownerOfLock+" has exited or failed");
                     System.out.println("The lock of "+ownerOfLock+" on "+entry.getKey()+" has been released");
@@ -97,8 +98,8 @@ public class FileAgent implements AgentInterface, Serializable {
                     voor het bestand. Er werd immers reeds gecontroleerd of er iemand het bestand reeds had gelocked,
                     zoniet is er nooit een probleem en komen we nooit in deze branch.
                      */
-                    lockApproved = lockedFilesMap.replace(entry.getKey(), ownerOfLock, entry.getValue() ? currentNode.getMyHash() : -1);
-                    if (lockApproved && entry.getValue())
+                    isReplaced = lockedFilesMap.replace(entry.getKey(), ownerOfLock, entry.getValue() ? currentNode.getMyHash() : -1);
+                    if (isReplaced && entry.getValue())
                         currentNode.approveFileLock(entry.getKey());
                 }
                 /*
@@ -117,8 +118,8 @@ public class FileAgent implements AgentInterface, Serializable {
                     en wordt de waarde -1 opnieuw geschreven.
                      */
                     boolean isOwnerOfLock = lockedFilesMap.get(entry.getKey()) == currentNode.getMyHash();
-                    lockApproved = lockedFilesMap.replace(entry.getKey(), isOwnerOfLock ? currentNode.getMyHash() : -1, entry.getValue() ? currentNode.getMyHash() : -1);
-                    if (lockApproved && entry.getValue())
+                    isReplaced = lockedFilesMap.replace(entry.getKey(), isOwnerOfLock ? currentNode.getMyHash() : -1, entry.getValue() ? currentNode.getMyHash() : -1);
+                    if (isReplaced && entry.getValue())
                         currentNode.approveFileLock(entry.getKey());
                 }
             }
