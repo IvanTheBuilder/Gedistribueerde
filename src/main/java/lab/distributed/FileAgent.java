@@ -85,7 +85,7 @@ public class FileAgent implements AgentInterface, Serializable {
                 boolean currentIsFirst = currentNode.getMyHash() < currentNode.getPreviousNode();
                 boolean lastNodeIsGone = currentIsFirst && ownerOfLock > currentNode.getPreviousNode();
                 boolean lockApproved = false;
-                if ((lastNodeIsGone || (currentNode.getMyHash() > ownerOfLock)) && (ownerOfLock != -1) && false) {
+                if ((lastNodeIsGone || (currentNode.getMyHash() > ownerOfLock)) && (ownerOfLock != -1)) {
                     //TODO: print statements verwijderen na testen
                     System.out.println("The file agent noticed node with hash: "+ownerOfLock+" has exited or failed");
                     System.out.println("The lock of "+ownerOfLock+" on "+entry.getKey()+" has been released");
@@ -98,7 +98,7 @@ public class FileAgent implements AgentInterface, Serializable {
                     zoniet is er nooit een probleem en komen we nooit in deze branch.
                      */
                     lockApproved = lockedFilesMap.replace(entry.getKey(), ownerOfLock, entry.getValue() ? currentNode.getMyHash() : -1);
-                    if (lockApproved)
+                    if (lockApproved && entry.getValue())
                         currentNode.approveFileLock(entry.getKey());
                 }
                 /*
@@ -118,7 +118,7 @@ public class FileAgent implements AgentInterface, Serializable {
                      */
                     boolean isOwnerOfLock = lockedFilesMap.get(entry.getKey()) == currentNode.getMyHash();
                     lockApproved = lockedFilesMap.replace(entry.getKey(), isOwnerOfLock ? currentNode.getMyHash() : -1, entry.getValue() ? currentNode.getMyHash() : -1);
-                    if (lockApproved)
+                    if (lockApproved && entry.getValue())
                         currentNode.approveFileLock(entry.getKey());
                 }
             }
