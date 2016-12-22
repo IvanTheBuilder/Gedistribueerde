@@ -45,6 +45,7 @@ public class FileGUI extends JFrame {
         openButton.setEnabled(false);
         deleteLocalButton.setEnabled(false);
         deleteButton.setEnabled(false);
+        this.node = node;
         pack();
         openButton.addActionListener(new ActionListener() {
             @Override
@@ -99,16 +100,21 @@ public class FileGUI extends JFrame {
             public void run() {
                 while(true) {
                     try {
-                        Thread.sleep(100);
+                        System.out.println("Sleeping");
+                        Thread.sleep(500);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                     if(node != null && node.getFileList() != null) {
+                        System.out.println("1");
                         if(lastArray != node.getFileList().keySet().toArray(new String[node.getFileList().size()])) {
+                            System.out.println("2");
                             lastArray = node.getFileList().keySet().toArray(new String[node.getFileList().size()]);
                             list1.setListData(lastArray);
                         }
+                        System.out.println("3");
                     }
+                    System.out.println("4");
                 }
             }
         }).start();
