@@ -636,10 +636,13 @@ public class Node implements NodeInterface {
                 previousNode = myHash;
                 nextNode = myHash;
                 try {
+                    Thread.sleep(500);//Todo mss hiervoor een beter oplossing vinden. Nameserver geeft null terug waardoor FileAgent niet kan starten, in geval dat 2e node joint.
                     getNode(nextNode).startAgent(new FileAgent());
                 } catch (RemoteException e) {
                     e.printStackTrace();
                     failure(nextNode);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
                 try {
                     watchDir = new WatchDir(LOCAL_DIRECTORY, false, this);//watchdir class op LOCAL_DIRECTORY, niet recursief, op deze node

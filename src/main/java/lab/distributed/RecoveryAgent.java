@@ -28,6 +28,7 @@ public class RecoveryAgent implements AgentInterface, Serializable{
      * @param startingNode De node die de failure Agent opstart
      */
     public RecoveryAgent(int hashFailedNode, Node startingNode, boolean failedNodeWasPreviousNode){
+        System.out.println("recoveryagent aangemaakt");
         this.hashFailedNode = hashFailedNode;
         this.startingNodeLocation = startingNode.getLocation();
         hashStartingNode = startingNode.getMyHash();
@@ -72,11 +73,12 @@ public class RecoveryAgent implements AgentInterface, Serializable{
                 String IPofSupposedOwner = nameServerInterface.getOwner(key);
                 int hashOfSupposedeOwner = currentNode.hashName(IPofSupposedOwner);
                 int hashOfFile = currentNode.hashName(key);
+                System.out.println("bestand behandelen:"+key);
                 if (hashOfFile >= hashFailedNode && hashOfSupposedeOwner < hashFailedNode) {
                     NodeInterface newOwner = currentNode.getNode(IPofSupposedOwner);
                     FileEntry fileEntry = newOwner.getRemoteFileEntry(key);
                     //newOwner heeft het bestand nog niet staatn, maak een nieuwe entry aan en repliceer.
-                    if (fileEntry.equals(null)) {
+                    if (fileEntry == null) {
                         FileEntry newFilEntry = new FileEntry(key, InetAddress.getLocalHost().getHostAddress(), IPofSupposedOwner, IPofSupposedOwner);
                         newFilEntry.addDownloadLocation(InetAddress.getLocalHost().getHostAddress());
                         newOwner.replicateNewFile(newFilEntry);
@@ -113,11 +115,12 @@ public class RecoveryAgent implements AgentInterface, Serializable{
                 String IPofSupposedOwner = nameServerInterface.getOwner(key);
                 int hashOfSupposedeOwner = currentNode.hashName(IPofSupposedOwner);
                 int hashOfFile = currentNode.hashName(key);
+                System.out.println("bestand behandelen:"+key);
                 if (hashOfFile >= hashFailedNode && hashOfSupposedeOwner < hashFailedNode) {
                     NodeInterface newOwner = currentNode.getNode(IPofSupposedOwner);
                     FileEntry fileEntry = newOwner.getRemoteFileEntry(key);
                     //newOwner heeft het bestand nog niet staatn, maak een nieuwe entry aan en repliceer.
-                    if (fileEntry.equals(null)) {
+                    if (fileEntry == null) {
                         FileEntry newFilEntry = new FileEntry(key, InetAddress.getLocalHost().getHostAddress(), IPofSupposedOwner, IPofSupposedOwner);
                         newFilEntry.addDownloadLocation(InetAddress.getLocalHost().getHostAddress());
                         newOwner.replicateNewFile(newFilEntry);
