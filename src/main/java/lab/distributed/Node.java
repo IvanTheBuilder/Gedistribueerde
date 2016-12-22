@@ -603,6 +603,11 @@ public class Node implements NodeInterface {
      * @return de interface die we gebruiken om RMI aan te roepen
      */
     public NodeInterface getNode(int hash) throws RemoteException {
+        try {
+            Thread.sleep(500);//Todo mss hiervoor een beter oplossing vinden. Nameserver geeft null terug waardoor FileAgent niet kan starten, in geval dat 2e node joint.
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         return getNode(nameServer.getAddress(hash));
     }
 
@@ -636,13 +641,11 @@ public class Node implements NodeInterface {
                 previousNode = myHash;
                 nextNode = myHash;
                 try {
-                    Thread.sleep(500);//Todo mss hiervoor een beter oplossing vinden. Nameserver geeft null terug waardoor FileAgent niet kan starten, in geval dat 2e node joint.
+
                     getNode(nextNode).startAgent(new FileAgent());
                 } catch (RemoteException e) {
                     e.printStackTrace();
                     failure(nextNode);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
                 }
                 try {
                     watchDir = new WatchDir(LOCAL_DIRECTORY, false, this);//watchdir class op LOCAL_DIRECTORY, niet recursief, op deze node
@@ -807,7 +810,7 @@ public class Node implements NodeInterface {
                 }
             } else {
                 //Geen Owner?
-                if (valueOfEntry.getHash() >= nextNode) {
+                if (valueOfEntry.getHash() >= nextNode && getHashByIP(valueOfEntry.getLocal())!=nextNode) {
                     //repliceer naar volgende node, maar deze wordt geen eigenaar.
                     //Wordt zelf downloadlocatie.
                     try {
