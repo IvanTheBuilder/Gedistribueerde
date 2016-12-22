@@ -3,6 +3,8 @@ package lab.distributed;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * Fileserver die wordt gebruikt om bestanden over tcp te sturen
@@ -14,6 +16,8 @@ public class FileServer {
 
     DataInputStream in;
     DataOutputStream out;
+    private static final Path LOCAL_DIRECTORY = Paths.get("local");
+    private static final Path REPLICATED_DIRECTORY = Paths.get("replicated");
 
     public FileServer(int port) {
         try {
@@ -44,6 +48,7 @@ public class FileServer {
                                     while ((count = fileStream.read(bytes)) > 0) {
                                         out.write(bytes, 0, count);
                                     }
+                                    out.flush();
                                     clientSocket.close();
                                 } else {
                                     // Indien we het bestand niet hebben, breek de verbinding af.
@@ -73,7 +78,7 @@ public class FileServer {
     }
 
     public File getFile(String name) {
-        return new File("./files/"+name);
+        return new File(REPLICATED_DIRECTORY + File.separator + name);
     }
 
 }
