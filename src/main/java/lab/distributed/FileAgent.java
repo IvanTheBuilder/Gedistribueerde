@@ -131,8 +131,9 @@ public class FileAgent implements AgentInterface, Serializable {
             boolean waarde in de nieuwe lijst te zetten.
              */
             HashMap<String, Boolean> newFileList = new HashMap<>();
+            newFileList.putAll(currentNode.getFileList());
             for (Map.Entry<String, Integer> entry : lockedFilesMap.entrySet()) {
-                newFileList.put(entry.getKey(), entry.getValue() == currentNode.getMyHash());
+                newFileList.putIfAbsent(entry.getKey(),false);
             }
             currentNode.setFileList(newFileList);
         }
