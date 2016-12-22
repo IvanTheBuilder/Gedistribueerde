@@ -38,14 +38,6 @@ public class FileAgent implements AgentInterface, Serializable {
         else {
 
             /*
-            Het probleem is dat fileAgent moet weten welke bestanden er nog beschikbaar
-            zijn in het netwerk nadat een node exit of failed. Het is echter gegarandeerd
-            dat een bestand altijd minstens 2 keer aanwezig is in het netwerk? Dit houdt
-            in dat er altijd een entry mag bestaan (zei het zonder lock owner) met als key
-            de naam van een bestand eens dit bestand ooit in het netwerk is gekomen.
-             */
-
-            /*
             We gaan eerst de lijst van locale files op de huidige node af om te kijken of
             er nieuwe bestanden zijn bijgekomen, zoja voegen we deze toe aan de lockedFilesMap
             en zetten we de waarde op -1 om aan te geven dat er geen enkele node een lock
@@ -81,14 +73,9 @@ public class FileAgent implements AgentInterface, Serializable {
                 In de else branch zal de -1 hash dan vervangen worden door de hash van de huidige node als deze een lock
                 heeft aangevraagd voor het beschouwde bestand.
                  */
-                //int ownerOfLock = lockedFilesMap.putIfAbsent(entry.getKey(), entry.getValue() ? currentNode.getMyHash() : -1);
                 int ownerOfLock = lockedFilesMap.get(entry.getKey());
-
-                //boolean currentIsFirst = currentNode.getMyHash() < currentNode.getPreviousNode();
-                //boolean lastNodeIsGone = currentIsFirst && ownerOfLock > currentNode.getPreviousNode();
                 boolean isReplaced = false;
-                //if ((lastNodeIsGone || (currentNode.getMyHash() > ownerOfLock)) && (ownerOfLock != -1)) {
-                if (!currentNode.nodeIsPresent(ownerOfLock) && (ownerOfLock != -1)) { //als owner gefaald is
+                if (!currentNode.nodeIsPresent(ownerOfLock) && (ownerOfLock != -1)) {
                     //TODO: print statements verwijderen na testen
                     System.out.println("The file agent noticed node with hash: "+ownerOfLock+" has exited or failed");
                     System.out.println("The lock of "+ownerOfLock+" on "+entry.getKey()+" has been released");

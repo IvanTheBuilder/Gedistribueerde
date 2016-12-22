@@ -159,15 +159,15 @@ public class NameServer implements NameServerInterface {
                         byte[] byteAddress = Arrays.copyOfRange(buf, 0, 4);
                         String address = InetAddress.getByAddress(byteAddress).getHostAddress();
                         String name = new String(Arrays.copyOfRange(buf, 4, 255)).trim();
-                        System.out.println("Received multicast with IP " + address + " and name " + name);
+                        System.out.println("Received multicast with IP " + address + " and name " + name +".");
                         NodeInterface node = getNode(address);
                         if (addNode(name, address)) {
-                            System.out.println("Eigen IP: "+Inet4Address.getLocalHost().getHostAddress());
+                            System.out.println("Own IP: "+Inet4Address.getLocalHost().getHostAddress());
                             node.setSize(Inet4Address.getLocalHost().getHostAddress(), nodeMap.size());
                             System.out.printf("Node %s from %s requested to join and was accepted.\nNew sitation: %s\n", name, address, nodeMap.toString());
                         }
                         else {
-                            System.out.println("Eigen IP: "+Inet4Address.getLocalHost().getHostAddress());
+                            System.out.println("Own IP: "+Inet4Address.getLocalHost().getHostAddress());
                             node.setSize(Inet4Address.getLocalHost().getHostAddress(), -1);
                             System.out.printf("Node %s from %s requested to join but was rejected due to duplicate\n", name, address);
                         }
