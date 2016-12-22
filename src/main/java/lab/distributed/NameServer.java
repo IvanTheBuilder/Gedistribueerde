@@ -194,7 +194,20 @@ public class NameServer implements NameServerInterface {
         try {
             return (NodeInterface) Naming.lookup(name);
         } catch (NotBoundException e) {
-            e.printStackTrace();
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e1) {
+                try {
+                    return (NodeInterface) Naming.lookup(name);
+                } catch (NotBoundException e2) {
+                    e2.printStackTrace();
+                } catch (MalformedURLException e2) {
+                    e2.printStackTrace();
+                } catch (RemoteException e2) {
+                    e2.printStackTrace();
+                }
+                e1.printStackTrace();
+            }
         } catch (MalformedURLException e) {
             e.printStackTrace();
         } catch (RemoteException e) {

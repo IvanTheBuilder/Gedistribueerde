@@ -34,6 +34,7 @@ public class RecoveryAgent implements AgentInterface, Serializable{
         hashStartingNode = startingNode.getMyHash();
         this.currentNode = startingNode;
         this.failedNodeWasPreviousNode = failedNodeWasPreviousNode;
+        System.out.println("Recovery agent aangemaakt!");
     }
 
     @Override
