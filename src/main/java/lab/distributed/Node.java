@@ -536,6 +536,7 @@ public class Node implements NodeInterface {
             while ((count = fileInputStream.read(bytes)) > 0) {
                 dataOutputStream.write(bytes, 0, count);
             }
+            dataOutputStream.flush();
             dataOutputStream.close();
             dataInputStream.close();
             socket.close();

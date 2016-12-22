@@ -48,6 +48,7 @@ public class FileServer {
                                     while ((count = fileStream.read(bytes)) > 0) {
                                         out.write(bytes, 0, count);
                                     }
+                                    out.flush();
                                     clientSocket.close();
                                 } else {
                                     // Indien we het bestand niet hebben, breek de verbinding af.
