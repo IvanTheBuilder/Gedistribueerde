@@ -111,14 +111,12 @@ public class FileGUI extends JFrame {
                     }
                 }
             }
-        });
+        }).start();
     }
 
     public static void main(String[] args) {
         FileGUI fileGUI = new FileGUI(null);
         fileGUI.setVisible(true);
-
-     //   fileGUI.refreshFileList(new FileEntry[]{new FileEntry("Testnaam", "lokaal", "Owner", "Replicated"), new FileEntry("Testnaam2", "lokaal", "Owner", "Replicated")});
     }
 
     //TODO: roep deze methode aan telkens wanneer er iets veranderd in de filelist

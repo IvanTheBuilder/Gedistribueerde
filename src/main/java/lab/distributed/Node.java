@@ -1,5 +1,7 @@
 package lab.distributed;
 
+import lab.distributed.gui.FileGUI;
+
 import java.io.*;
 import java.net.*;
 import java.nio.file.Files;
@@ -376,6 +378,8 @@ public class Node implements NodeInterface {
                 exit();
                 System.exit(1);
             }
+            FileGUI fileGUI = new FileGUI(null);
+            fileGUI.setVisible(true);
             System.out.println("Watchdir ✓");
         }
     }
