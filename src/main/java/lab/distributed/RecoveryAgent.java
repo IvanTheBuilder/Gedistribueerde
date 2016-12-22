@@ -144,8 +144,10 @@ public class RecoveryAgent implements AgentInterface, Serializable{
             } catch (UnknownHostException e) {
                 e.printStackTrace();
             }
-
-
+            finally {
+                justStarted = false;
+                currentNode = null;
+            }
             justStarted = false;
         }
         currentNode = null;

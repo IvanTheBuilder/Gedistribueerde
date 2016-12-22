@@ -107,7 +107,7 @@ public class FileEntry implements Comparable<FileEntry>, Serializable {
 
     @Override
     public String toString() {
-        return "bestand "+fileName+" staat op node met hash"+replicated;
+        return "bestand "+fileName+" heeft als owner "+owner;
     }
 
     @Override
