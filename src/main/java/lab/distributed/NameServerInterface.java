@@ -60,4 +60,6 @@ public interface NameServerInterface extends Remote {
     int getPreviousNode(int hash) throws RemoteException;
 
     TreeMap<Integer, String> getNodeMap() throws RemoteException;
+
+    boolean nodeIsPresent(Integer hash) throws RemoteException;
 }

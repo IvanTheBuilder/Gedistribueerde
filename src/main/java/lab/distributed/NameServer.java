@@ -208,4 +208,8 @@ public class NameServer implements NameServerInterface {
         return this.nodeMap;
     }
 
+    @Override
+    public boolean nodeIsPresent(Integer hash) {
+        return nodeMap.containsKey(hash);
+    }
 }
