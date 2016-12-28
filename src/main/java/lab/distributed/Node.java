@@ -107,8 +107,6 @@ public class Node implements NodeInterface {
         } catch (RemoteException e) {
             e.printStackTrace();
         }
-
-
     }
 
     /**
@@ -152,7 +150,6 @@ public class Node implements NodeInterface {
                     e.printStackTrace();
                 }
 
-
                 try { //bestandsfiche doorsturen naar lokale node
                     node = getNode(fileEntry.getLocal());   //node waar het bestand lokaal staat
                     if (!node.changeLocalEntry(fileEntry.getFileName(), fileEntry))
@@ -161,7 +158,6 @@ public class Node implements NodeInterface {
                     e.printStackTrace();
                     failure(getHashByIP(fileEntry.getLocal()));
                 }
-                //node waar het bestand naar gerepliceerd wordt
 
                 //file repliceren naar de vorige node
                 try {
@@ -261,9 +257,7 @@ public class Node implements NodeInterface {
             System.exit(1);
         }
 
-        /**
-         * Finalize socket so thread is willing to use it.
-         */
+        //socket moet final zijn zodat de thread hem kan gebruiken
         final MulticastSocket finalMulticastSocket = multicastSocket;
         new Thread(new Runnable() {
             public void run() {
@@ -278,7 +272,7 @@ public class Node implements NodeInterface {
                         String name = new String(Arrays.copyOfRange(buf, 4, 255)).trim();
                         hash = hashName(name);
                         NodeInterface node = getNode(address); //Vraag node op langs address want het kan zijn dat hij nog niet in de nameserver staat.
-                        /**
+                        /*
                          * Ga eerst na of we de enigste node waren in het netwerk. Zo ja, zet vorige en volgende naar
                          * de nieuwe node, en zet die van de nieuwe node naar ons.
                          * https://gyazo.com/f0a9b650813f46d1b98ac63bb6b396fb
@@ -291,30 +285,16 @@ public class Node implements NodeInterface {
                             System.out.println("A second node has joined. I've set my previous and next node to him and updated him.");
                             checkOwnedFilesOnDiscovery();
                         }
-                        /**
-                         * Hierna gaan we na of de node tussen ons en één van onze buren ligt
-                         */
+                        //Als dit niet het geval is gaan we na of de node tussen ons en één van onze buren ligt
                         else if ((myHash < hash && hash < nextNode) || (nextNode < myHash && (hash > myHash || hash < nextNode))) {
-                            /**
-                             * SITUATIE 1: (eerste deel van if-case)
-                             * De node ligt tussen mij en mijn volgende buur. De nieuwe node is mijn volgende en ik ben
-                             * de vorige van de nieuwe node. Ik zeg dit tegen de nieuwe node en pas mijn volgende aan.
-                             *
-                             * Methode checkOwnedFileOnDiscovery aanroepen.
-                             */
-                            /**
-                             * SITUATIE 2: (tweede monstreuze deel van if-case)
-                             * Ik zit aan het einde van de kring want mijn volgende node is lager dan mij.
-                             * De nieuwe node ligt boven mij, of ligt onder mijn volgende (laagste) node. Ik licht
-                             * de nieuwe node in over zijn buren en pas mijn volgende aan.
-                             */
+                        //De nieuwe node ligt tussen mij en mijn volgende buur OF ik heb het hoogste ID en de nieuwe node ligt tussen mij en het laagste ID (mijn volgende node
                             node.setPreviousNode(myHash);
                             node.setNextNode(nextNode);
                             System.out.printf("A node (%d) joined between me (%d) and my next neighbour (%d). Updating accordingly...\nWelcome %s!\n", hash, myHash, nextNode, name);
                             nextNode = hash;
                             checkOwnedFilesOnDiscovery();
                         } else if ((previousNode < hash && hash < myHash) || (previousNode > myHash && (hash < myHash || hash > previousNode))) {
-                            /**
+                            /*
                              * De node ligt tussen mijn vorige buur en mij. Mijn vorige buur zal de nieuwe node
                              * over zijn nieuwe buren informeren. Ik pas enkel mijn vorige node aan.
                              */
@@ -646,7 +626,6 @@ public class Node implements NodeInterface {
                 previousNode = myHash;
                 nextNode = myHash;
                 try {
-
                     getNode(nextNode).startAgent(new FileAgent());
                 } catch (RemoteException e) {
                     e.printStackTrace();
